@@ -92,5 +92,7 @@ test('the call script preserves consent facts and contacts use explicit tel targ
  assert.match(bankScript({...answers,kind:'card'}),/не давал\(а\) согласия/);
  assert.match(bankScript({...answers,kind:'transfer'}),/подтвердил\(а\) сам\(а\)/);
  assert.match(bankScript({...answers,kind:'credit'}),/кредитом/);
+ assert.doesNotMatch(bankScript({...answers,kind:'other'}),/Перевод подтвердил/);
+ assert.match(bankScript({...answers,kind:'investment'}),/Уточните, совершали ли/);
  assert.equal(banks.length,5);assert.ok(banks.every(b=>/^\+?\d+$/.test(b.tel)&&b.url.startsWith('https://')));
 });
