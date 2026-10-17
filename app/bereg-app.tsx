@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useMemo,useState} from 'react';
+import {useEffect,useMemo,useRef,useState} from 'react';
 import {loadLocalCase,saveLocalCase,removeLocalCase} from '@/lib/local-case';
 import {getPlanProgress} from '@/lib/plan-progress';
 import {StepChecklist,BankSupport,CaseDashboard} from '@/components/bereg-features';
@@ -35,6 +35,7 @@ export default function BeregApp(){
  const [completedSteps,setCompletedSteps]=useState<string[]>([]);
  const progress=useMemo(()=>getPlanProgress(plan,completedSteps),[plan,completedSteps]);
  const currentArticle=articles.find(a=>a.id===articleId);
+ const lastPageUrl=useRef(typeof window==='undefined'?'':window.location.href.split('#')[0]);
  function go(next:View,article?:string){setView(next);setArticleId(article||'');setMenu(false);setActiveStep(null);setSupport(false);if(typeof window!=='undefined'){const url=new URL(window.location.href);url.searchParams.delete('view');url.searchParams.delete('article');if(next!=='home')url.searchParams.set('view',next);if(article)url.searchParams.set('article',article);url.hash='';window.history.pushState({},'',url.pathname+url.search);window.scrollTo({top:0,behavior:'instant'})}}
  function openArticle(article:Article){go('article',article.id)}
  function readAboutDisclosure(){openArticle(articles.find(a=>a.id==='feelings')!)}
@@ -59,7 +60,14 @@ export default function BeregApp(){
  useEffect(()=>{if(caseLoading||!storageReady||!hasCaseAnswers(answers))return;try{const value=saveLocalCase({answers,documents,focusStep:plan.some(s=>s.id===focusStep)?focusStep:null,completedSteps,questionnaireStep:question,intakeFurthest:Math.max(furthestQuestion,question),role,bankCall});setSaved(value);if(value.completedSteps.join('|')!==completedSteps.join('|'))setCompletedSteps(value.completedSteps);setCaseError('')}catch(e){setCaseError(e instanceof Error?e.message:'Не получилось сохранить изменения.')}},[caseLoading,storageReady,answers,documents,focusStep,completedSteps,question,furthestQuestion,role,bankCall]);
  useEffect(()=>{const read=()=>{const params=new URLSearchParams(window.location.search);const v=params.get('view') as View;setView(views.includes(v)?v:'home');setArticleId(params.get('article')||'')};read();window.addEventListener('popstate',read);void loadCase();return()=>window.removeEventListener('popstate',read)},[]);
  useEffect(()=>{const context=(document as unknown as {modelContext?:{registerTool:(tool:unknown,options:unknown)=>unknown}}).modelContext;if(!context?.registerTool)return;const lifecycle=new AbortController();for(const tool of [{name:'get_current_bereg_plan',title:'Посмотреть текущий план',description:'Read the current unsaved answers and plan visible on the page. Does not access saved cases.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:true},execute:(input:unknown)=>{if(!input||typeof input!=='object'||Object.keys(input).length)throw new Error('Expected empty object');return {available:hasPlan,steps:hasPlan?plan.map(s=>({id:s.id,title:s.title,category:s.category,completed:progress.completed.includes(s.id)})):[]}}},{name:'start_bereg_questionnaire',title:'Начать описание случая',description:'Navigate to the case questionnaire. Does not submit or save any data.',inputSchema:{type:'object',properties:{role:{type:'string',enum:['self','helper']}},required:['role'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute:(input:unknown)=>{const data=input as {role?:string};if(!data||!['self','helper'].includes(data.role||'')||Object.keys(data).some(k=>k!=='role'))throw new Error('Invalid role');start(data.role==='helper');return {view:'intake',question:1}}}]){try{void Promise.resolve(context.registerTool(tool,{signal:lifecycle.signal})).catch(()=>{})}catch{}}return()=>lifecycle.abort()},[hasPlan,plan,completedSteps]);
- useEffect(()=>{document.title=view==='article'&&currentArticle?`${currentArticle.title} · Берег`:'Берег — поддержка без осуждения'},[view,currentArticle]);
+ useEffect(()=>{
+  document.title=view==='article'&&currentArticle?`${currentArticle.title} · Берег`:'Берег — поддержка без осуждения';
+  const url=window.location.href.split('#')[0];
+  if(url===lastPageUrl.current)return; // The counter's init already records the initial page.
+  const referer=lastPageUrl.current;lastPageUrl.current=url;
+  const ym=(window as unknown as {ym?:(counter:number,method:string,url:string,options:{title:string;referer:string})=>void}).ym;
+  if(typeof ym==='function')ym(113661127,'hit',url,{title:document.title,referer});
+ },[view,currentArticle]);
  const canContinue=question===0?!!answers.risk&&!!answers.timing:question===1?!!answers.kind&&!!answers.money:question===2?!!answers.impact&&!!answers.amount:question===3?true:!!answers.mood&&!!answers.support;
  const filtered=articles.filter(a=>(filter==='Все материалы'||a.tag===filter)&&`${a.title} ${a.summary}`.toLowerCase().includes(search.toLowerCase()));
  return <div className="app-shell">
