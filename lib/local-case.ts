@@ -12,11 +12,12 @@ const payloadSchema = z.object({
   // Keep the original storage key and migrate cases saved before the checklist.
   completedSteps: z.array(z.string().refine(id => Object.hasOwn(steps,id))).max(32).default([]),
   questionnaireStep:z.number().int().min(0).max(4).default(0),
+  intakeFurthest:z.number().int().min(0).max(4).default(0),
   role:z.enum(['self','helper']).default('self'),
   bankCall:z.object({bankId:z.enum(['sber','vtb','alfa','tbank','gpb']).default('sber'),reference:z.string().max(160),date:z.string().max(40),nextAction:z.string().max(2000)}).default({bankId:'sber',reference:'',date:'',nextAction:''}),
 });
 const storedSchema = payloadSchema.extend({id:z.string(),updatedAt:z.string().datetime()});
-type CaseInput = Pick<SavedCase,'answers'|'documents'|'focusStep'|'questionnaireStep'|'role'|'bankCall'> & {completedSteps?:string[]};
+type CaseInput = Pick<SavedCase,'answers'|'documents'|'focusStep'|'questionnaireStep'|'intakeFurthest'|'role'|'bankCall'> & {completedSteps?:string[]};
 function validateFocus(data: CaseInput) {
   if (data.focusStep && !generatePlan(data.answers).some(step => step.id === data.focusStep)) throw new Error('Этот шаг не входит в ваш план.');
 }

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "conversation",
+    "filename": "conversation.webp",
+    "alt": "Две женщины беседуют за столиком уличного кафе",
+    "author": "Vitaly Gariev",
+    "sourceUrl": "https://unsplash.com/photos/two-women-talking-at-an-outdoor-cafe-fqQvsxBvLdQ",
+    "licenseUrl": "https://unsplash.com/license",
+    "originalImageUrl": "https://images.unsplash.com/photo-1758525226586-c9b75017de26",
+    "usageNote": "Иллюстративная фотография. Изображённые люди не представлены как клиенты сервиса, пострадавшие от мошенничества или авторы отзывов."
+  },
+  {
+    "id": "planning",
+    "filename": "planning.webp",
+    "alt": "Руки человека с ручкой и блокнотом рядом с ноутбуком и растением",
+    "author": "Alina Vilchenko",
+    "sourceUrl": "https://www.pexels.com/photo/a-person-writing-in-the-notebook-on-the-wooden-desk-11435017/",
+    "licenseUrl": "https://www.pexels.com/license/",
+    "originalImageUrl": "https://images.pexels.com/photos/11435017/pexels-photo-11435017.jpeg",
+    "usageNote": "Иллюстративная фотография. Изображённые люди не представлены как клиенты сервиса, пострадавшие от мошенничества или авторы отзывов."
+  },
+  {
+    "id": "phone",
+    "filename": "phone.webp",
+    "alt": "Руки держат телефон с открытым банковским приложением без персональных данных",
+    "author": "Atlantic Money",
+    "sourceUrl": "https://unsplash.com/photos/a-person-holding-a-smart-phone-in-their-hand-j6LFEedJ2FM",
+    "licenseUrl": "https://unsplash.com/license",
+    "originalImageUrl": "https://images.unsplash.com/photo-1681825984459-47ee999da245",
+    "usageNote": "Иллюстративная фотография. Изображённые люди не представлены как клиенты сервиса, пострадавшие от мошенничества или авторы отзывов."
+  },
+  {
+    "id": "paperwork",
+    "filename": "paperwork.webp",
+    "alt": "Два человека вместе рассматривают документы за столом",
+    "author": "Olena Kholina",
+    "sourceUrl": "https://unsplash.com/photos/two-people-reviewing-documents-at-a-table-MhqUBTxQ3Hw",
+    "licenseUrl": "https://unsplash.com/license",
+    "originalImageUrl": "https://images.unsplash.com/photo-1775163024488-e88e4a71179f",
+    "usageNote": "Иллюстративная фотография. Изображённые люди не представлены как клиенты сервиса, пострадавшие от мошенничества или авторы отзывов."
+  },
+  {
+    "id": "shore",
+    "filename": "shore.webp",
+    "alt": "Спокойное озеро у лесистого берега в мягком вечернем свете",
+    "author": "Gabriel Hyde",
+    "sourceUrl": "https://unsplash.com/photos/GC9X6nUIp2k",
+    "licenseUrl": "https://unsplash.com/license",
+    "originalImageUrl": "https://images.unsplash.com/photo-1543117977-89d5797f887c",
+    "usageNote": "Иллюстративная фотография. Изображённые люди не представлены как клиенты сервиса, пострадавшие от мошенничества или авторы отзывов."
+  },
+  {
+    "id": "support",
+    "filename": "support.webp",
+    "alt": "Две женщины разговаривают за столом у большого окна",
+    "author": "Christina @ wocintechchat.com",
+    "sourceUrl": "https://unsplash.com/photos/two-women-sitting-beside-table-and-talking-LQ1t-8Ms5PY",
+    "licenseUrl": "https://unsplash.com/license",
+    "originalImageUrl": "https://images.unsplash.com/photo-1573497491208-6b1acb260507",
+    "usageNote": "Иллюстративная фотография. Изображённые люди не представлены как клиенты сервиса, пострадавшие от мошенничества или авторы отзывов."
+  }
+]

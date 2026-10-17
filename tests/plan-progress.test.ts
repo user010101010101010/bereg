@@ -71,9 +71,10 @@ test('unfinished intake resumes at the saved question without a complete plan',(
  assert.equal(hasCaseAnswers(emptyAnswers),false);
  const partial={...emptyAnswers,risk:'yes',timing:'today',notes:'Начал описание'};
  assert.equal(hasCaseAnswers(partial),true);assert.equal(isIntakeComplete(partial),false);
- const first=saveLocalCase({answers:partial,documents:{},focusStep:null,questionnaireStep:1,role:'helper'});
+ const first=saveLocalCase({answers:partial,documents:{},focusStep:null,questionnaireStep:1,intakeFurthest:3,role:'helper'});
  const loaded=loadLocalCase()!;
  assert.equal(loaded.questionnaireStep,1);assert.equal(loaded.role,'helper');assert.deepEqual(loaded.answers,partial);
+ assert.equal(loaded.intakeFurthest,3);
  const next=saveLocalCase({...loaded,answers,questionnaireStep:4});
  assert.equal(next.id,first.id);assert.equal(isIntakeComplete(next.answers),true);
 });
