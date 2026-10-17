@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { choices, generatePlan, type Answers, type SavedCase } from './bereg';
+import { choices, generatePlan, steps, type SavedCase } from './bereg.ts';
+import { getPlanProgress } from './plan-progress.ts';
 
 // Each GitHub Pages project has its own record, including on a shared origin.
 const storageKey = () => `bereg:case:v1:${new URL('.', window.location.href).pathname}`;
@@ -8,9 +9,11 @@ const payloadSchema = z.object({
   answers: z.object({risk:choice('risk'),timing:choice('timing'),kind:choice('kind'),money:choice('money'),impact:choice('impact'),amount:choice('amount'),already:z.array(choice('already')).max(4),mood:choice('mood'),support:choice('support'),notes:z.string().max(4000)}).strict(),
   documents: z.record(z.enum(['bank','police']), z.string().max(12000)),
   focusStep: z.string().max(40).nullable(),
+  // Keep the original storage key and migrate cases saved before the checklist.
+  completedSteps: z.array(z.string().refine(id => Object.hasOwn(steps,id))).max(32).default([]),
 });
 const storedSchema = payloadSchema.extend({id:z.string(),updatedAt:z.string().datetime()});
-type CaseInput = Pick<SavedCase,'answers'|'documents'|'focusStep'>;
+type CaseInput = Pick<SavedCase,'answers'|'documents'|'focusStep'> & {completedSteps?:string[]};
 function validateFocus(data: CaseInput) {
   if (data.focusStep && !generatePlan(data.answers).some(step => step.id === data.focusStep)) throw new Error('Этот шаг не входит в ваш план.');
 }
@@ -22,13 +25,13 @@ export function loadLocalCase(): SavedCase | null {
   try {
     const value = storedSchema.parse(JSON.parse(raw)) as SavedCase;
     validateFocus(value);
-    return value;
+    return {...value,completedSteps:getPlanProgress(generatePlan(value.answers),value.completedSteps).completed};
   } catch { throw new Error('Сохранение повреждено. Его можно удалить и сохранить случай заново.'); }
 }
 export function saveLocalCase(input: CaseInput): SavedCase {
-  const data = payloadSchema.parse(input) as CaseInput;
+  const data = payloadSchema.parse(input);
   validateFocus(data);
-  const value: SavedCase = {...data, id:crypto.randomUUID(), updatedAt:new Date().toISOString()};
+  const value: SavedCase = {...data, completedSteps:getPlanProgress(generatePlan(data.answers),data.completedSteps).completed, id:crypto.randomUUID(), updatedAt:new Date().toISOString()};
   try { window.localStorage.setItem(storageKey(),JSON.stringify(value)); }
   catch { throw new Error('Браузер не смог сохранить данные. Скачайте план и черновики или разрешите хранение данных сайта.'); }
   return value;
