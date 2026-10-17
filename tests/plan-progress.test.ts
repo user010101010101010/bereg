@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {emptyAnswers,generatePlan,buildDraft} from '../lib/bereg.ts';
+import {emptyAnswers,generatePlan,buildDraft,isIntakeComplete,hasCaseAnswers} from '../lib/bereg.ts';
+import {bankScript,banks} from '../lib/bank-help.ts';
 import {getPlanProgress} from '../lib/plan-progress.ts';
 import {loadLocalCase,saveLocalCase,removeLocalCase} from '../lib/local-case.ts';
 
@@ -63,4 +64,33 @@ test('invalid progress cannot overwrite a valid record',()=>{
  assert.throws(()=>saveLocalCase({answers,documents:{},focusStep:null,completedSteps:[plan[0].id]}),/не смог сохранить/);
  assert.equal(records.get(key),prior);blocked=false;
  removeLocalCase();assert.equal(loadLocalCase(),null);
+});
+
+test('unfinished intake resumes at the saved question without a complete plan',()=>{
+ records.clear();
+ assert.equal(hasCaseAnswers(emptyAnswers),false);
+ const partial={...emptyAnswers,risk:'yes',timing:'today',notes:'Начал описание'};
+ assert.equal(hasCaseAnswers(partial),true);assert.equal(isIntakeComplete(partial),false);
+ const first=saveLocalCase({answers:partial,documents:{},focusStep:null,questionnaireStep:1,role:'helper'});
+ const loaded=loadLocalCase()!;
+ assert.equal(loaded.questionnaireStep,1);assert.equal(loaded.role,'helper');assert.deepEqual(loaded.answers,partial);
+ const next=saveLocalCase({...loaded,answers,questionnaireStep:4});
+ assert.equal(next.id,first.id);assert.equal(isIntakeComplete(next.answers),true);
+});
+
+test('call notes and an intentionally emptied draft survive autosave updates',()=>{
+ const call={bankId:'tbank',reference:'123-456',date:'2026-10-17',nextAction:'Передать заявление через приложение'};
+ saveLocalCase({answers,documents:{bank:''},focusStep:'bank',bankCall:call});
+ const before=loadLocalCase()!;
+ assert.deepEqual(before.bankCall,call);assert.equal(before.documents.bank,'');
+ saveLocalCase({...before,completedSteps:['bank']});
+ assert.equal(loadLocalCase()!.id,before.id);assert.deepEqual(loadLocalCase()!.bankCall,call);
+ removeLocalCase();assert.equal(loadLocalCase(),null);
+});
+
+test('the call script preserves consent facts and contacts use explicit tel targets',()=>{
+ assert.match(bankScript({...answers,kind:'card'}),/не давал\(а\) согласия/);
+ assert.match(bankScript({...answers,kind:'transfer'}),/подтвердил\(а\) сам\(а\)/);
+ assert.match(bankScript({...answers,kind:'credit'}),/кредитом/);
+ assert.equal(banks.length,5);assert.ok(banks.every(b=>/^\+?\d+$/.test(b.tel)&&b.url.startsWith('https://')));
 });

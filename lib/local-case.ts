@@ -4,16 +4,19 @@ import { getPlanProgress } from './plan-progress.ts';
 
 // Each GitHub Pages project has its own record, including on a shared origin.
 const storageKey = () => `bereg:case:v1:${new URL('.', window.location.href).pathname}`;
-const choice = (key: keyof typeof choices) => z.string().refine(value => choices[key].some(([id]) => id === value));
+const choice = (key: keyof typeof choices) => z.string().refine(value => (key !== 'already' && value === '') || choices[key].some(([id]) => id === value));
 const payloadSchema = z.object({
   answers: z.object({risk:choice('risk'),timing:choice('timing'),kind:choice('kind'),money:choice('money'),impact:choice('impact'),amount:choice('amount'),already:z.array(choice('already')).max(4),mood:choice('mood'),support:choice('support'),notes:z.string().max(4000)}).strict(),
   documents: z.record(z.enum(['bank','police']), z.string().max(12000)),
   focusStep: z.string().max(40).nullable(),
   // Keep the original storage key and migrate cases saved before the checklist.
   completedSteps: z.array(z.string().refine(id => Object.hasOwn(steps,id))).max(32).default([]),
+  questionnaireStep:z.number().int().min(0).max(4).default(0),
+  role:z.enum(['self','helper']).default('self'),
+  bankCall:z.object({bankId:z.enum(['sber','vtb','alfa','tbank','gpb']).default('sber'),reference:z.string().max(160),date:z.string().max(40),nextAction:z.string().max(2000)}).default({bankId:'sber',reference:'',date:'',nextAction:''}),
 });
 const storedSchema = payloadSchema.extend({id:z.string(),updatedAt:z.string().datetime()});
-type CaseInput = Pick<SavedCase,'answers'|'documents'|'focusStep'> & {completedSteps?:string[]};
+type CaseInput = Pick<SavedCase,'answers'|'documents'|'focusStep'|'questionnaireStep'|'role'|'bankCall'> & {completedSteps?:string[]};
 function validateFocus(data: CaseInput) {
   if (data.focusStep && !generatePlan(data.answers).some(step => step.id === data.focusStep)) throw new Error('Этот шаг не входит в ваш план.');
 }
@@ -31,7 +34,9 @@ export function loadLocalCase(): SavedCase | null {
 export function saveLocalCase(input: CaseInput): SavedCase {
   const data = payloadSchema.parse(input);
   validateFocus(data);
-  const value: SavedCase = {...data, completedSteps:getPlanProgress(generatePlan(data.answers),data.completedSteps).completed, id:crypto.randomUUID(), updatedAt:new Date().toISOString()};
+  let existingId:string|undefined;
+  try {const previous=window.localStorage.getItem(storageKey());if(previous)existingId=storedSchema.parse(JSON.parse(previous)).id;} catch { /* Storage failures are reported by setItem below. */ }
+  const value: SavedCase = {...data, completedSteps:getPlanProgress(generatePlan(data.answers),data.completedSteps).completed, id:existingId||crypto.randomUUID(), updatedAt:new Date().toISOString()};
   try { window.localStorage.setItem(storageKey(),JSON.stringify(value)); }
   catch { throw new Error('Браузер не смог сохранить данные. Скачайте план и черновики или разрешите хранение данных сайта.'); }
   return value;
