@@ -1,4 +1,5 @@
 import type {BankCall} from './bank-help.ts';
+import type {GoalProgress} from './case-goals.ts';
 export type Answers={risk:string;timing:string;kind:string;money:string;impact:string;amount:string;already:string[];mood:string;support:string;notes:string};
 export const emptyAnswers:Answers={risk:'',timing:'',kind:'',money:'',impact:'',amount:'',already:[],mood:'',support:'',notes:''};
 export const choices={
@@ -43,7 +44,7 @@ export const articles:Article[]=[
  {id:'helper',tag:'Близким',title:'Как поддержать пострадавшего',summary:'Спокойный разговор и помощь с конкретным действием.',tone:'blue',paragraphs:['Скажите, что готовы помочь без осуждения. Уточните, что нужно: поговорить или вместе пройти ближайший шаг.','Не требуйте рассказать историю сразу. Предложите записать факты, когда человек будет готов.','Не берите контроль над деньгами и аккаунтами без согласия. При непосредственной угрозе жизни или безопасности обратитесь в экстренные службы.'],source:sources.psychology},
  {id:'restore',tag:'Восстановление',title:'Как вернуть опору после потери накоплений',summary:'Ближайшие расходы, небольшие решения и возвращение к своей цели без давления.',tone:'green',paragraphs:[]},
 ];
-export type SavedCase={id:string;answers:Answers;documents:Record<string,string>;focusStep:string|null;completedSteps:string[];updatedAt:string;questionnaireStep?:number;intakeFurthest?:number;role?:'self'|'helper';bankCall?:BankCall};
+export type SavedCase={id:string;answers:Answers;documents:Record<string,string>;focusStep:string|null;completedSteps:string[];updatedAt:string;questionnaireStep?:number;intakeFurthest?:number;role?:'self'|'helper';bankCall?:BankCall;goalProgress?:GoalProgress};
 export function buildDraft(type:'bank'|'police',a:Answers):string{
  const facts=a.notes.trim()||'[Коротко опишите: как началось общение, что вам сообщили, какие операции и когда произошли.]';
  const consent=a.kind==='card'?'Указанную операцию я не совершал(а) и согласия на неё не давал(а).':a.kind==='transfer'?'Перевод я подтвердил(а) самостоятельно под влиянием обмана.':'Операция связана с обстоятельствами, которые я считаю признаками мошенничества.';
