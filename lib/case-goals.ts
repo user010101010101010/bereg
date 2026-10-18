@@ -1,12 +1,9 @@
-export type CaseGoal = 'onboarding_start' | 'plan_received' | 'plan_step_done';
+import {sendFunnelGoal,type FunnelGoal} from './site-analytics.ts';
+
+export type CaseGoal = FunnelGoal;
 export type GoalProgress = {onboardingStarted:boolean;planReceived:boolean};
 
-export function sendCaseGoal(goal:CaseGoal) {
- if(typeof window==='undefined')return;
- const ym=(window as unknown as {ym?:(counter:number,method:string,goal:CaseGoal)=>void}).ym;
- // Analytics must never interrupt answering questions or saving the case.
- try {if(typeof ym==='function')ym(113661127,'reachGoal',goal)}catch{}
-}
+export const sendCaseGoal=sendFunnelGoal;
 
 export function createCaseGoalTracker(send:(goal:CaseGoal)=>void=sendCaseGoal) {
  let progress:GoalProgress={onboardingStarted:false,planReceived:false};

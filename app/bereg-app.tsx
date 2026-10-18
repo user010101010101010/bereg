@@ -3,6 +3,7 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {loadLocalCase,loadLocalCases,saveLocalCase,removeLocalCase,createLocalCase,activateLocalCase,exportStoredData} from '@/lib/local-case';
 import {getPlanProgress} from '@/lib/plan-progress';
 import {createCaseGoalTracker} from '@/lib/case-goals';
+import {sendPageView} from '@/lib/site-analytics';
 import {StepChecklist,BankSupport,CaseDashboard} from '@/components/bereg-features';
 import {ArticleTile,ArticleCarousel,ArticlePage} from '@/components/bereg-content';
 import {SiteHeader} from '@/components/site-header';
@@ -106,8 +107,7 @@ export default function BeregApp(){
   const url=window.location.href.split('#')[0];
   if(url===lastPageUrl.current)return; // The counter's init already records the initial page.
   const referer=lastPageUrl.current;lastPageUrl.current=url;
-  const ym=(window as unknown as {ym?:(counter:number,method:string,url:string,options:{title:string;referer:string})=>void}).ym;
-  if(typeof ym==='function')ym(113661127,'hit',url,{title:document.title,referer});
+  sendPageView(url,referer,document.title);
  },[view,currentArticle]);
  useEffect(()=>{if(view==='plan'&&hasPlan&&!caseLoading&&caseGoals.current.planShown())setGoalRevision(value=>value+1)},[view,hasPlan,caseLoading]);
  useEffect(()=>{const viewport=window.visualViewport;const update=()=>{document.documentElement.style.setProperty('--viewport-height',(viewport?.height||window.innerHeight)+'px');document.documentElement.style.setProperty('--viewport-offset',(viewport?.offsetTop||0)+'px')};update();viewport?.addEventListener('resize',update);viewport?.addEventListener('scroll',update);window.addEventListener('resize',update);return()=>{viewport?.removeEventListener('resize',update);viewport?.removeEventListener('scroll',update);window.removeEventListener('resize',update)}},[]);

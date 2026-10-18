@@ -9,6 +9,7 @@
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <!-- Yandex.Metrika counter -->
     <script type="text/javascript">
+        window.dataLayer = window.dataLayer || [];
         (function(m,e,t,r,i,k,a){
             m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
             m[i].l=1*new Date();
@@ -19,9 +20,24 @@
         ym(113661127, 'init', {ssr:true, webvisor:false, clickmap:false, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
     </script>
     <!-- /Yandex.Metrika counter -->
+    <!-- Top.Mail.Ru counter -->
+    <script type="text/javascript">
+        (function (d, w, id) {
+            if (d.getElementById(id)) return;
+            var _tmr = w._tmr || (w._tmr = []);
+            // No account IDs exist on this site. Do not send local case IDs as pid.
+            _tmr.push({id: "3805761", type: "pageView", start: (new Date()).getTime()});
+            var ts = d.createElement("script"); ts.type = "text/javascript"; ts.async = true; ts.id = id;
+            ts.src = "https://top-fwz1.mail.ru/js/code.js";
+            var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
+            if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
+        })(document, window, "tmr-code");
+    </script>
+    <!-- /Top.Mail.Ru counter -->
   </head>
   <body>
     <noscript><div><img src="https://mc.yandex.ru/watch/113661127" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    <noscript><div><img src="https://top-fwz1.mail.ru/counter?id=3805761;js=na" style="position:absolute;left:-9999px;" alt="Top.Mail.Ru" /></div></noscript>
     <div id="root"></div>
     <script type="module" src="./main.tsx"></script>
   </body>

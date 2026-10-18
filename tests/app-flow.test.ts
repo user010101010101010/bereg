@@ -8,6 +8,7 @@ import * as storage from '../lib/local-case.ts';
 import * as drafts from '../lib/draft-versions.ts';
 import * as bank from '../lib/bank-help.ts';
 import * as goals from '../lib/case-goals.ts';
+import * as analytics from '../lib/site-analytics.ts';
 import * as planProgress from '../lib/plan-progress.ts';
 import * as search from '../lib/article-search.ts';
 
@@ -19,7 +20,8 @@ function app(records=new Map<string,string>()){
  const timer=(callback:()=>void,delay:number)=>{timers.set(++timerId,{callback,delay});return timerId};
  const location={href:'https://beregryadom.ru/'};
  const listeners=new Map<string,()=>void>();
- const window={location,localStorage:{getItem:(k:string)=>records.get(k)??null,setItem:(k:string,v:string)=>{if(storageFailed)throw new Error('quota');records.set(k,v)},removeItem:(k:string)=>records.delete(k)},history:{pushState:(_a:unknown,_b:string,url:string)=>{location.href=new URL(url,location.href).href}},scrollTo(){},innerHeight:800,setTimeout:timer,clearTimeout:(id:number)=>timers.delete(id),addEventListener:(name:string,callback:()=>void)=>listeners.set(name,callback),removeEventListener:(name:string)=>listeners.delete(name),ym:(...args:unknown[])=>calls.push(args)};
+ const dataLayer:{event:string}[]=[];const pixelViews:Record<string,unknown>[]=[];
+ const window={location,dataLayer,_tmr:pixelViews,localStorage:{getItem:(k:string)=>records.get(k)??null,setItem:(k:string,v:string)=>{if(storageFailed)throw new Error('quota');records.set(k,v)},removeItem:(k:string)=>records.delete(k)},history:{pushState:(_a:unknown,_b:string,url:string)=>{location.href=new URL(url,location.href).href}},scrollTo(){},innerHeight:800,setTimeout:timer,clearTimeout:(id:number)=>timers.delete(id),addEventListener:(name:string,callback:()=>void)=>listeners.set(name,callback),removeEventListener:(name:string)=>listeners.delete(name),ym:(...args:unknown[])=>calls.push(args)};
  Object.assign(globalThis,{window});
  const document={title:'',visibilityState:'visible',documentElement:{style:{setProperty(){}}},addEventListener(){},removeEventListener(){},createElement:()=>({click(){}})};
  const stub=(name:string)=>Object.assign(function Component(){},{displayName:name});
@@ -29,7 +31,7 @@ function app(records=new Map<string,string>()){
   useMemo:(factory:()=>unknown)=>{cursor++;return factory()},
   useEffect:(callback:()=>void|(()=>void),deps:unknown[])=>{const i=cursor++;const previous=hooks[i];if(!previous||deps.some((v,j)=>!Object.is(v,previous.deps[j]))){pending.push(()=>{previous?.cleanup?.();hooks[i]={deps,cleanup:callback()}})}},
  };
- const modules:Record<string,unknown>={'react':React,'@/lib/bereg':bereg,'@/lib/local-case':storage,'@/lib/plan-progress':planProgress,'@/lib/case-goals':goals,'@/lib/bank-help':bank,'@/lib/draft-versions':drafts,'@/lib/article-search':search};
+ const modules:Record<string,unknown>={'react':React,'@/lib/bereg':bereg,'@/lib/local-case':storage,'@/lib/plan-progress':planProgress,'@/lib/case-goals':goals,'@/lib/site-analytics':analytics,'@/lib/bank-help':bank,'@/lib/draft-versions':drafts,'@/lib/article-search':search};
  const require=(name:string)=>{if(name in modules)return modules[name];if(name.includes('photo-credits'))return {default:[]};return new Proxy({},{get:(_target,key)=>key==='__esModule'?true:key==='canAdvance'?(a:bereg.Answers,i:number)=>i===0?!!a.risk:i===1?!!a.kind&&!!a.money:i===2?!!a.impact:true:stub(String(key))})};
  const exports:any={};const source=readFileSync(new URL('../app/bereg-app.tsx',import.meta.url),'utf8');
  const js=ts.transpileModule('import * as __BeregReact from "react";\n'+source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.React,jsxFactory:'__BeregReact.createElement',jsxFragmentFactory:'__BeregReact.Fragment'}}).outputText;
@@ -42,10 +44,21 @@ function app(records=new Map<string,string>()){
  function click(label:string){const button=nodes().find(element=>name(element)==='button'&&text(element).trim()===label);assert.ok(button,'Missing button '+label);button.props.onClick();render()}
  function flush(){for(const [id,value] of [...timers])if(value.delay<=200){timers.delete(id);value.callback()}render()}
  const navigate=(view:string)=>{find('SiteHeader').onNavigate(view);render()};
- render();return {find,click,render,flush,navigate,records,calls,listeners,copied,failStorage:(value:boolean)=>{storageFailed=value},blockClipboard:()=>{clipboardBlocked=true},visibleText:()=>text(tree)};
+ render();return {find,click,render,flush,navigate,records,calls,dataLayer,pixelViews,listeners,copied,failStorage:(value:boolean)=>{storageFailed=value},blockClipboard:()=>{clipboardBlocked=true},visibleText:()=>text(tree)};
 }
 const complete={...bereg.emptyAnswers,risk:'yes',kind:'transfer',money:'own',impact:'savings',notes:'Вымышленная история для регрессии'};
 function finish(h:ReturnType<typeof app>){h.click('Составить план действий');h.find('CaseIntake').onChange(complete);h.render();h.find('CaseIntake').onPlan();h.render();h.flush()}
+test('real app: pixel tracks route transitions once and shares the existing anonymous funnel lifecycle',()=>{
+ const h=app();assert.equal(h.pixelViews.length,0); // HTML already counts the initial page.
+ h.navigate('about');assert.equal(h.pixelViews.length,1);assert.equal(h.pixelViews[0].url,'https://beregryadom.ru/?view=about');assert.equal(h.pixelViews[0].referrer,'https://beregryadom.ru/');
+ h.render();h.navigate('about');assert.equal(h.pixelViews.length,1);assert.deepEqual(h.dataLayer,[]);
+ h.navigate('home');finish(h);assert.deepEqual(h.dataLayer,[{event:'onboarding_start'},{event:'plan_received'}]);
+ const step=h.find('StepChecklist').plan[0];h.find('StepChecklist').onToggle(step.id,true);h.render();h.find('StepChecklist').onToggle(step.id,true);h.render();h.find('StepChecklist').onToggle(step.id,false);h.render();
+ assert.deepEqual(h.dataLayer,[{event:'onboarding_start'},{event:'plan_received'},{event:'plan_step_done'}]);
+ h.navigate('case');h.find('CaseDashboard').onDraft('bank');h.render();const before=h.pixelViews.length;h.find('DraftEditor').onChange('Вымышленный закрытый текст');h.render();assert.equal(h.pixelViews.length,before);
+ assert.doesNotMatch(JSON.stringify([h.dataLayer,h.pixelViews]),/Вымышленная история|Вымышленный закрытый текст|notes|documents|userid|pid/);h.flush();
+ const resumed=app(h.records);resumed.click('Продолжить план действий');assert.deepEqual(resumed.dataLayer,[]);
+});
 test('real app: incomplete intake resumes, plan counts only on explicit completion, drafts become stale after facts change',()=>{
  const h=app();h.click('Составить план действий');h.find('CaseIntake').onChange(complete);h.render();h.flush();assert.equal(storage.loadLocalCase()!.intakeCompleted,false);assert.equal(h.calls.some(call=>call[2]==='plan_received'),false);
  const resumed=app(h.records);resumed.click('Продолжить опрос');assert.equal(resumed.find('CaseIntake').answers.notes,complete.notes);resumed.find('CaseIntake').onPlan();resumed.render();resumed.flush();assert.equal(storage.loadLocalCase()!.intakeCompleted,true);assert.equal(resumed.calls.filter(call=>call[2]==='plan_received').length,1);
