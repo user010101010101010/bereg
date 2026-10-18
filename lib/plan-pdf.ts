@@ -1,4 +1,4 @@
-import {generatePlan,answerLabel,type Answers} from './bereg.ts';
+import {generatePlan,answerLabel,initiallyCompleted,type Answers} from './bereg.ts';
 import {banks,bankScript,bankQuestions,type BankCall} from './bank-help.ts';
 import {brandWidth,brandHeight,brandPdfPath} from './brand-art.ts';
 import {policeGuidance,policeOnline,legalProviders,legalContext} from './legal-help.ts';
@@ -31,19 +31,47 @@ export function createPlanPdf(a:Answers,completed:string[],font:Uint8Array,call?
  function title(s:string){paragraph(s,25,navy,16)}
  function caption(s:string){ensure(33);text(s,42,y,10,green);y+=27}
  function link(label:string,url:string){ensure(25);text(label,42,y,9,green);links.push({page:pages.length-1,x:42,y:842-y-14,w:510,url});y+=22}
+ completed=[...new Set([...completed,...initiallyCompleted(a)])];
  const plan=generatePlan(a),remaining=plan.filter(s=>!completed.includes(s.id)),done=plan.filter(s=>completed.includes(s.id));
  newPage('ПЕРСОНАЛЬНЫЙ ПЛАН · '+date.toLocaleDateString('ru-RU'));
- title('Один шаг за раз.');paragraph('Ваши действия после мошенничества',16,green,22);
- rect(36,y,523,78,lime);text(`Впереди ${remaining.length} · Отмечено ${done.length} из ${plan.length}`,52,y+14,16);text('Можно действовать в своём темпе и делать паузы.',52,y+47,10);y+=105;
+ title('Ваш план действий');paragraph('После финансового обмана',16,green,22);
+ rect(36,y,523,78,lime);text(`Впереди ${remaining.length} · Отмечено ${done.length} из ${plan.length}`,52,y+14,16);text('Отметки показывают выполненные задачи, а не исход обращения.',52,y+47,9);y+=105;
  paragraph(answerLabel('kind',a.kind),11,muted,18);
  caption('ВАШ ЧЕК-ЛИСТ');
  for(const [i,step] of plan.entries()){const lines=wrap(step.title,12,465);ensure(lines.length*19+25);rect(42,y+4,12,12,completed.includes(step.id)?green:'.85 .89 .82');if(completed.includes(step.id))page.push(`1 1 1 RG 1.4 w 44 ${842-y-10} m 47 ${842-y-13} l 52 ${842-y-7} l S`);for(const [j,line] of lines.entries())text((j===0?`${i+1}. `:'')+line,66,y+j*19,12,completed.includes(step.id)?muted:navy);y+=lines.length*19+16}
  paragraph('Далее - подробности только для ещё не отмеченных шагов. Отметка означает ваше действие, а не гарантированный результат разбирательства.',10,muted);
  if(y<710){page.push(`${green} rg 36 72 m 155 132 303 36 559 87 c 559 48 l 36 48 l f`)}
  if(!remaining.length)paragraph('Вы отметили все шаги. Можно сделать паузу. Материалы и черновики остаются в «Моём случае».',13,green);
- for(const step of remaining){newPage(step.category.toUpperCase());title(step.title);paragraph(step.summary,12,muted,14);caption('ЧТО ПОДГОТОВИТЬ');paragraph(step.prepare.join(' · '),10,muted,18);caption('ДЕЙСТВИЯ');for(const [i,action] of step.actions.entries())paragraph(`${i+1}. ${action}`,11,navy,12);if(step.id==='police'){paragraph('Для личной подачи можно подготовить печатный текст, распечатать и подписать. Полностью писать от руки не требуется.',9,muted);link(policeGuidance.label,policeGuidance.url)}caption('КАК ПОНЯТЬ, ЧТО ШАГ СДЕЛАН');paragraph(step.result,11,green);if(step.source)link(step.source.label,step.source.url);
-  if(step.id==='police'){newPage('ЮРИДИЧЕСКАЯ ПОМОЩЬ · ПУБЛИЧНЫЕ КОНТАКТЫ');title('Если нужен разбор документов');paragraph(legalContext(a).budget,11,muted);for(const provider of legalProviders){caption(provider.name);paragraph(provider.price+' · '+provider.priceDetail,11,green,6);paragraph(provider.first,10,navy,6);paragraph(provider.contact,10,muted,6);link('Услуги и условия на сайте',provider.url)}paragraph('Публичные цены сверены 17.10.2026. Подбор по заявленным направлениям не гарантирует результат. Приём случая, объём помощи и цену уточняйте напрямую. Фонд просит обращаться письменно; рассмотрение может занять до 60 дней. Банк и полицию не нужно откладывать.',9,muted)}
-  if(step.id==='bank'||step.id==='bankReply'){newPage('ПАМЯТКА ДЛЯ ЗВОНКА В БАНК');title('Сначала - связь с банком');paragraph('Наберите номер сами или откройте поддержку в официальном приложении. Это общие линии поддержки: попросите зарегистрировать сообщение о мошенничестве.',11,muted);for(const bank of banks){paragraph(`${bank.name} · ${bank.phone}`,12,green,2);link('Официальная страница банка',bank.url)}paragraph('Контакты проверены 17.10.2026. Условия звонков зависят от оператора и страны.',9,muted);caption('КАК НАЧАТЬ РАЗГОВОР');paragraph(bankScript(a),11);newPage('ПАМЯТКА ДЛЯ ЗВОНКА · ВОПРОСЫ И ЗАМЕТКИ');title('Что важно уточнить');for(const q of bankQuestions)paragraph('• '+q,10,navy,9);if(call?.reference||call?.nextAction){caption('ВАШИ ЗАМЕТКИ');if(call.reference)paragraph('Номер обращения: '+call.reference);if(call.date)paragraph('Дата: '+call.date);if(call.nextAction)paragraph(call.nextAction)}paragraph('Не сообщайте ПИН, CVC/CVV, пароли и коды подтверждения операций. Не переводите деньги на «безопасный счёт».',10,green)}
+ for(const step of remaining){
+  newPage(step.category.toUpperCase());title(step.title);
+  if(step.id==='bank'||step.id==='bankReply'){
+   caption('ОФИЦИАЛЬНЫЙ КОНТАКТ');
+   const selected=banks.find(bank=>bank.id===call?.bankId);
+   if(selected){paragraph(selected.name+' · '+selected.phone,16,green);paragraph(selected.note,10,muted);link('Проверить номер на сайте банка',selected.url)}
+   else {paragraph('Откройте поддержку в приложении или найдите номер на карте. Если вашего банка нет ниже, используйте только контакт, найденный самостоятельно.',11,muted);for(const bank of banks){paragraph(bank.name+' · '+bank.phone,12,green,2);link('Проверить на сайте банка',bank.url)}}
+   paragraph('Контакты сверены 18.10.2026. Условия звонка зависят от оператора и страны.',9,muted);
+   if(a.kind==='card')paragraph('Сообщите о списании без согласия без промедления. Уточните, как подать уведомление способом из договора: звонок может не заменять письменное заявление.',11,green);
+   caption('НАЧАЛО РАЗГОВОРА');paragraph(bankScript(a,call),11);
+   caption('ЗАПИШИТЕ ОТВЕТ БАНКА');
+   paragraph('Номер обращения: '+(call?.reference||'[уточните у банка]'));
+   paragraph('Дата разговора: '+(call?.date||'[дата]'));
+   paragraph('Дальнейшее действие: '+(call?.nextAction||'[что нужно сделать]'));
+   paragraph('Когда и как будет ответ: '+(call?.responseDue||'[уточните у сотрудника]'));
+   caption('ПРИ НЕОБХОДИМОСТИ УТОЧНИТЕ');for(const q of bankQuestions)paragraph('• '+q,10,navy,9);
+   paragraph('Не сообщайте ПИН, CVC/CVV, пароли и коды подтверждения операций. Не переводите деньги на «безопасный счёт».',10,green);
+   continue;
+  }
+  paragraph(step.summary,12,muted,14);caption('ЧТО ПОДГОТОВИТЬ');paragraph(step.prepare.join(' · '),10,muted,18);
+  caption('ДЕЙСТВИЯ');for(const [i,action] of step.actions.entries())paragraph((i+1)+'. '+action,11,navy,12);
+  if(step.id==='police'){paragraph('Для личной подачи можно подготовить печатный текст, распечатать и подписать. Полностью писать от руки не требуется.',10,muted);link(policeGuidance.label,policeGuidance.url);link(policeOnline.label,policeOnline.url)}
+  caption('КОГДА ЗАДАЧА ВЫПОЛНЕНА');paragraph(step.result,11,green);if(step.source)link(step.source.label,step.source.url);
+  if(step.id==='police'){
+   newPage('ЕСЛИ НУЖЕН ЮРИСТ');title('Внешняя юридическая помощь');
+   paragraph('Контакты отобраны по опубликованным направлениям работы. Качество услуг, статус в реестре и готовность принять ваш случай не проверены. Бесплатный фонд и платные услуги указаны отдельно.',10,muted);
+   paragraph(legalContext(a).budget,11,muted);
+   for(const provider of legalProviders){caption(provider.name);paragraph(provider.price+' · '+provider.priceDetail,11,green,6);paragraph(provider.first,10,navy,6);paragraph(provider.contact,10,muted,6);link(provider.id==='fpp'?'Как получить помощь':'Услуги и условия на сайте',provider.url)}
+   paragraph('Публичные цены сверены 18.10.2026. Уточняйте приём случая, объём помощи и цену напрямую. Фонд просит обращаться письменно; рассмотрение может занять до 60 календарных дней. Обращения в банк и полицию не нужно откладывать.',10,muted);
+  }
  }
  for(let i=0;i<pages.length;i++){page=pages[i];rect(36,805,523,1,'.82 .86 .79');text('Берег рядом · Информация помогает сориентироваться; исход зависит от случая.',36,815,8,muted);text(`${i+1} / ${pages.length}`,520,815,8,muted)}
  const objects:Uint8Array[]=[];const add=(b:string|Uint8Array)=>{objects.push(typeof b==='string'?bytes(b):b);return objects.length};

@@ -32,13 +32,13 @@ test('each published article has complete content, real local photography, and u
  const credits=JSON.parse(fs.readFileSync(new URL('../public/images/photo-credits.json',import.meta.url),'utf8')) as {filename:string;author:string;sourceUrl:string}[];
  assert.equal(new Set(articles.map(article=>guides[article.id].photo)).size,articles.length);
  for(const article of articles){const guide=guides[article.id];assert.ok(guide.photoAlt.length>10);const credit=credits.find(photo=>photo.filename===guide.photo);assert.ok(credit?.author);assert.ok(credit?.sourceUrl.startsWith('https://www.pexels.com/photo/'))}
- for(const article of articles){const guide=guides[article.id];assert.ok(guide);assert.equal(guide.sections.length,4);assert.ok(guide.sources.length>=2);assert.equal(guide.checklist.length,3);assert.equal(guide.quiz.options.length,3);assert.ok(guide.quiz.correct>=0&&guide.quiz.correct<3);assert.ok(fs.existsSync(new URL('../public/images/'+guide.photo,import.meta.url)));assert.ok(guide.sources.every(s=>s.url.startsWith('https://')))}
+ for(const article of articles){const guide=guides[article.id];assert.ok(guide);assert.ok(guide.sections.length>=4);assert.ok(guide.sources.length>=2);assert.equal(guide.checklist.length,3);assert.equal(Object.hasOwn(guide,'quiz'),false);assert.ok(guide.quick.length>=3);assert.ok(fs.existsSync(new URL('../public/images/'+guide.photo,import.meta.url)));assert.ok(guide.sources.every(s=>s.url.startsWith('https://')))}
 });
 
 test('the requested own-savings transfer scenario gets a budget-aware legal path and accurate drafts',()=>{
  const a={...emptyAnswers,risk:'yes',timing:'today',kind:'transfer',money:'own',impact:'savings',amount:'under50',mood:'anxious',support:'yes'};
  const plan=generatePlan(a);assert.equal(plan[0].id,'security');assert.ok(plan.some(s=>s.id==='police'));assert.ok(!plan.some(s=>s.id==='debt'));
  assert.match(legalContext(a).budget,/50 000/);
- const bank=buildDraft('bank',a);assert.match(bank,/подтвердил\(а\) самостоятельно/);assert.doesNotMatch(bank,/согласия на неё не давал/);
+ const bank=buildDraft('bank',a);assert.match(bank,/сделан мной под влиянием обмана/);assert.doesNotMatch(bank,/без моего согласия/);
  const police=buildDraft('police',a);assert.match(police,/Подпись:/);assert.match(police,/Дата:/);assert.doesNotMatch(police,/предупреждён/);
 });

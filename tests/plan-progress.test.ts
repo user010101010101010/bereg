@@ -52,17 +52,17 @@ test('edited answers keep only marks applicable to the regenerated plan',()=>{
  const completed=['security','evidence','debt','restore'];
  const edited={...answers,risk:'no',already:['evidence']};
  saveLocalCase({answers:edited,documents:{bank:'Сохранённый текст'},focusStep:null,completedSteps:completed});
- assert.deepEqual(loadLocalCase()!.completedSteps,['restore']);
+ assert.deepEqual(loadLocalCase()!.completedSteps,['evidence','restore']);
  assert.equal(loadLocalCase()!.documents.bank,'Сохранённый текст');
 });
 
 test('invalid progress cannot overwrite a valid record',()=>{
- const prior=records.get(key);
+ const prior=JSON.stringify([...records]);
  assert.throws(()=>saveLocalCase({answers,documents:{},focusStep:null,completedSteps:['made-up-step']}));
- assert.equal(records.get(key),prior);
+ assert.equal(JSON.stringify([...records]),prior);
  blocked=true;
- assert.throws(()=>saveLocalCase({answers,documents:{},focusStep:null,completedSteps:[plan[0].id]}),/не смог сохранить/);
- assert.equal(records.get(key),prior);blocked=false;
+ assert.throws(()=>saveLocalCase({answers,documents:{},focusStep:null,completedSteps:[plan[0].id]}),/запрещает хранение/);
+ assert.equal(JSON.stringify([...records]),prior);blocked=false;
  removeLocalCase();assert.equal(loadLocalCase(),null);
 });
 
@@ -90,10 +90,10 @@ test('call notes and an intentionally emptied draft survive autosave updates',()
 });
 
 test('the call script preserves consent facts and contacts use explicit tel targets',()=>{
- assert.match(bankScript({...answers,kind:'card'}),/не давал\(а\) согласия/);
- assert.match(bankScript({...answers,kind:'transfer'}),/подтвердил\(а\) сам\(а\)/);
- assert.match(bankScript({...answers,kind:'credit'}),/кредитом/);
- assert.doesNotMatch(bankScript({...answers,kind:'other'}),/Перевод подтвердил/);
- assert.match(bankScript({...answers,kind:'investment'}),/Уточните, совершали ли/);
+ assert.match(bankScript({...answers,kind:'card'}),/без моего согласия/);
+ assert.match(bankScript({...answers,kind:'transfer'}),/сделан мной под влиянием обмана/);
+ assert.match(bankScript({...answers,credit:'unauthorized'}),/кредит, который я не оформлял/);
+ assert.doesNotMatch(bankScript({...answers,kind:'other'}),/сделан мной/);
+ assert.match(bankScript({...answers,kind:'investment'}),/Пока неясно, как именно/);
  assert.equal(banks.length,5);assert.ok(banks.every(b=>/^\+?\d+$/.test(b.tel)&&b.url.startsWith('https://')));
 });

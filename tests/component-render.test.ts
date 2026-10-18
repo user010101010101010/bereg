@@ -1,0 +1,37 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import * as icons from 'lucide-react';
+import * as bank from '../lib/bank-help.ts';
+import * as bereg from '../lib/bereg.ts';
+import * as drafts from '../lib/draft-versions.ts';
+import * as plan from '../lib/plan-progress.ts';
+function load(file:string){
+ const source=readFileSync(new URL('../components/'+file,import.meta.url),'utf8');const exports:any={};
+ const primitives={Dialog:({open,children}:any)=>open?children:null,DialogContent:({children,...props}:any)=>React.createElement('section',{...props,role:'dialog'},children),DialogTitle:({children}:any)=>React.createElement('h2',null,children),DialogDescription:({children}:any)=>React.createElement('p',null,children),Checkbox:({checked,...props}:any)=>React.createElement('button',{'data-slot':'checkbox',role:'checkbox','aria-checked':checked,'aria-label':props['aria-label']}),Progress:()=>React.createElement('div'),RadioGroup:({children}:any)=>React.createElement('div',null,children),RadioGroupItem:({value}:any)=>React.createElement('input',{type:'radio',value,readOnly:true})};
+ const require=(name:string)=>name==='react'?React:name==='lucide-react'?icons:name.includes('bank-help')?bank:name.endsWith('/bereg')?bereg:name.includes('draft-versions')?drafts:name.includes('plan-progress')?plan:primitives;
+ const js=ts.transpileModule('import * as __BeregReact from "react";\n'+source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.React,jsxFactory:'__BeregReact.createElement',jsxFragmentFactory:'__BeregReact.Fragment'}}).outputText;
+ vm.runInNewContext(js,{exports,require});return exports;
+}
+const a={...bereg.emptyAnswers,risk:'yes',kind:'transfer',money:'own',impact:'savings'};
+test('bank instruction renders no default bank, all five verified contacts, another-bank guidance and editable repeat reference',()=>{
+ const {BankSupport}=load('bereg-features.tsx');
+ const render=(value:bank.BankCall,answers=a)=>renderToStaticMarkup(React.createElement(BankSupport,{answers,value,onChange(){},onCopy(){}}));
+ const initial=render(bank.emptyBankCall);assert.match(initial,/<option value="" selected="">Выберите банк/);assert.match(initial,/<option value="other">Другой банк/);assert.doesNotMatch(initial,/href="tel:/);
+ for(const b of bank.banks){const html=render({...bank.emptyBankCall,bankId:b.id});assert.ok(html.includes('href="tel:'+b.tel+'"'));assert.ok(html.includes('href="'+b.url.replaceAll('&','&amp;')+'"'));assert.ok(html.indexOf('class="bank-contact"')<html.indexOf('class="call-script"'));assert.ok(html.indexOf('class="call-notes"')<html.indexOf('class="bank-extra"'));}
+ const other=render({...bank.emptyBankCall,bankId:'other'});assert.match(other,/обратной стороне карты/);assert.doesNotMatch(other,/href="tel:/);
+ const repeat=render({...bank.emptyBankCall,reference:'TEST-RETURN'}, {...a,already:['bank']});assert.match(repeat,/Повторный разговор/);assert.match(repeat,/value="TEST-RETURN"/);assert.match(repeat,/Номер обращения — TEST-RETURN/);
+});
+test('stale document visibly warns and blocks copy/TXT until an explicit choice; previous versions remain downloadable',()=>{
+ const {DraftEditor}=load('draft-editor.tsx');const first=drafts.replaceDraft('bank',{}, {},a);const answers={...a,kind:'card'};const versions=drafts.syncDraftVersions(first.documents,first.documentVersions,answers);
+ const props={type:'bank',answers,documents:first.documents,versions,onClose(){},onChange(){},onNew(){},onKeep(){},onDownload(){},onCopy(){},saveLabel:'Сохранено в этом браузере'};
+ const html=renderToStaticMarkup(React.createElement(DraftEditor,props));assert.ok(html.indexOf('В черновике остались прежние данные')<html.indexOf('Скачать TXT'));assert.match(html,/Создать новый черновик/);assert.match(html,/Оставить мой текст/);assert.equal((html.match(/disabled=""/g)||[]).length,2);
+ const renewed=drafts.replaceDraft('bank',first.documents,versions,answers);const current=renderToStaticMarkup(React.createElement(DraftEditor,{...props,documents:renewed.documents,versions:renewed.documentVersions}));assert.doesNotMatch(current,/disabled=""/);assert.match(current,/Прежние версии/);assert.match(current,/Скачать прежнюю версию TXT/);
+});
+test('browser storage disclosure appears before the first answer and uncertain access exposes short protection actions',()=>{
+ const {CaseIntake,canAdvance}=load('case-intake.tsx');const html=renderToStaticMarkup(React.createElement(CaseIntake,{answers:{...a,risk:'unsure'},onChange(){},stage:0,furthest:0,onStage(){},onPlan(){},onUrgent(){},role:'self',saveLabel:'Сохранено'}));assert.ok(html.indexOf('Ответы сохраняются в этом браузере')<html.indexOf('<fieldset'));assert.match(html,/Открыть короткую инструкцию/);assert.equal(canAdvance({...a,kind:'',money:''},1),false);assert.equal(canAdvance({...a,mood:'',support:''},4),true);
+});

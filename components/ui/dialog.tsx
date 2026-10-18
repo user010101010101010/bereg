@@ -7,10 +7,15 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
+const ReturnFocusContext=React.createContext<React.RefObject<HTMLElement|null>|null>(null)
 function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+  const returnFocus=React.useRef<HTMLElement|null>(null)
+  const wasOpen=React.useRef(false)
+  if(props.open&&!wasOpen.current&&typeof document!=='undefined')returnFocus.current=document.activeElement instanceof HTMLElement?document.activeElement:null
+  wasOpen.current=!!props.open
+  return <ReturnFocusContext.Provider value={returnFocus}><DialogPrimitive.Root data-slot="dialog" {...props} /></ReturnFocusContext.Provider>
 }
 
 function DialogTrigger({
@@ -55,6 +60,7 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
 }) {
+  const returnFocus=React.useContext(ReturnFocusContext)
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
@@ -65,6 +71,7 @@ function DialogContent({
           className
         )}
         {...props}
+        onCloseAutoFocus={event=>{props.onCloseAutoFocus?.(event);if(!event.defaultPrevented&&returnFocus?.current?.isConnected){event.preventDefault();returnFocus.current.focus()}}}
       >
         {children}
         {showCloseButton && (
