@@ -94,7 +94,6 @@ export default function BeregApp(){
   </div>
  </section>
 
- <section className="journey-section"><div className="section-heading"><h2>Опора на каждом шаге</h2><span className="subtle">В вашем темпе</span></div><div className="journey-grid">{[{n:'01',icon:HeartHandshake,title:'Найти опору',text:'Сделать паузу и обратиться за поддержкой, когда трудно собраться.',tone:'green',action:()=>setSupport(true)},{n:'02',icon:FileText,title:'Выбрать свои действия',text:'Понятный план, подсказки и черновики обращений по вашей ситуации.',tone:'lime',action:()=>start()},{n:'03',icon:ShieldCheck,title:'Двигаться дальше',text:'Постепенно возвращаться к привычной жизни и укреплять свою защиту.',tone:'blue',action:()=>go('protect')}].map(item=><button key={item.n} className={`journey-card ${item.tone}`} onClick={item.action}><span className="journey-top"><item.icon size={24}/><span>{item.n}</span></span><h3>{item.title}</h3><p>{item.text}</p><span className="card-link">Подробнее<Plus size={17}/></span></button>)}</div></section>
  <ArticleCarousel onOpen={openArticle} onAll={()=>go('materials')}/>
  <div className="secondary-entries"><button onClick={()=>go('check')}><Search size={20}/><span>Хочу разобраться в подозрительной ситуации</span><Plus size={17}/></button><button onClick={()=>go('protect')}><ShieldCheck size={20}/><span>Хочу защититься</span><Plus size={17}/></button></div>
  </>}

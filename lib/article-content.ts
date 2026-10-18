@@ -1,5 +1,7 @@
 export type Guide = {
   photo: string;
+  photoAlt: string;
+  photoPosition?: string;
   readMinutes: number;
   sections: {
     title: string;
@@ -19,7 +21,9 @@ export type Guide = {
 
 export const guides: Record<string, Guide> = {
   first: {
-    photo: 'phone.webp',
+    photo: 'article-first.webp',
+    photoAlt: 'Женщина разговаривает по телефону и держит раскрытый блокнот',
+    photoPosition: 'center 20%',
     readMinutes: 5,
     sections: [
       {
@@ -69,7 +73,8 @@ export const guides: Record<string, Guide> = {
     },
   },
   feelings: {
-    photo: 'conversation.webp',
+    photo: 'article-feelings.webp',
+    photoAlt: 'Двое близких вместе разбирают документы за домашним столом',
     readMinutes: 6,
     sections: [
       {
@@ -120,7 +125,8 @@ export const guides: Record<string, Guide> = {
     },
   },
   return: {
-    photo: 'phone.webp',
+    photo: 'article-return.webp',
+    photoAlt: 'Человек держит банковскую карту и телефон у рабочего стола',
     readMinutes: 6,
     sections: [
       {
@@ -171,7 +177,8 @@ export const guides: Record<string, Guide> = {
     },
   },
   evidence: {
-    photo: 'paperwork.webp',
+    photo: 'article-evidence.webp',
+    photoAlt: 'Руки человека раскладывают документы в папку',
     readMinutes: 5,
     sections: [
       {
@@ -221,7 +228,8 @@ export const guides: Record<string, Guide> = {
     },
   },
   repeat: {
-    photo: 'phone.webp',
+    photo: 'article-repeat.webp',
+    photoAlt: 'Человек сверяет информацию в телефоне и делает записи в блокноте',
     readMinutes: 5,
     sections: [
       {
@@ -271,7 +279,8 @@ export const guides: Record<string, Guide> = {
     },
   },
   helper: {
-    photo: 'support.webp',
+    photo: 'article-helper.webp',
+    photoAlt: 'Женщина внимательно слушает и поддерживает собеседницу на диване',
     readMinutes: 5,
     sections: [
       {
@@ -321,7 +330,8 @@ export const guides: Record<string, Guide> = {
     },
   },
   restore: {
-    photo: 'planning.webp',
+    photo: 'article-restore.webp',
+    photoAlt: 'Человек планирует расходы с калькулятором и документами',
     readMinutes: 6,
     sections: [
       {

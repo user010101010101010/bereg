@@ -58,5 +58,75 @@
     "licenseUrl": "https://unsplash.com/license",
     "originalImageUrl": "https://images.unsplash.com/photo-1573497491208-6b1acb260507",
     "usageNote": "Иллюстративная фотография. Изображённые люди не представлены как клиенты сервиса, пострадавшие от мошенничества или авторы отзывов."
+  },
+  {
+    "id": "article-first",
+    "filename": "article-first.webp",
+    "alt": "Женщина разговаривает по телефону и держит раскрытый блокнот",
+    "author": "Ivan S",
+    "sourceUrl": "https://www.pexels.com/photo/woman-talking-on-phone-4240502/",
+    "licenseUrl": "https://www.pexels.com/license/",
+    "originalImageUrl": "https://images.pexels.com/photos/4240502/pexels-photo-4240502.jpeg",
+    "usageNote": "Иллюстративная фотография. Изображённые люди не представлены как клиенты сервиса или пострадавшие от мошенничества."
+  },
+  {
+    "id": "article-feelings",
+    "filename": "article-feelings.webp",
+    "alt": "Двое близких вместе разбирают документы за домашним столом",
+    "author": "Mikhail Nilov",
+    "sourceUrl": "https://www.pexels.com/photo/man-couple-people-woman-6963051/",
+    "licenseUrl": "https://www.pexels.com/license/",
+    "originalImageUrl": "https://images.pexels.com/photos/6963051/pexels-photo-6963051.jpeg",
+    "usageNote": "Иллюстративная фотография. Изображённые люди не представлены как клиенты сервиса или пострадавшие от мошенничества."
+  },
+  {
+    "id": "article-return",
+    "filename": "article-return.webp",
+    "alt": "Человек держит банковскую карту и телефон у рабочего стола",
+    "author": "Mikhail Nilov",
+    "sourceUrl": "https://www.pexels.com/photo/person-holding-a-smartphone-and-a-credit-card-7534798/",
+    "licenseUrl": "https://www.pexels.com/license/",
+    "originalImageUrl": "https://images.pexels.com/photos/7534798/pexels-photo-7534798.jpeg",
+    "usageNote": "Иллюстративная фотография. Изображённые люди не представлены как клиенты сервиса или пострадавшие от мошенничества."
+  },
+  {
+    "id": "article-evidence",
+    "filename": "article-evidence.webp",
+    "alt": "Руки человека раскладывают документы в папку",
+    "author": "Anete Lusina",
+    "sourceUrl": "https://www.pexels.com/photo/person-taking-white-paper-from-folder-4792287/",
+    "licenseUrl": "https://www.pexels.com/license/",
+    "originalImageUrl": "https://images.pexels.com/photos/4792287/pexels-photo-4792287.jpeg",
+    "usageNote": "Иллюстративная фотография. Изображённые люди не представлены как клиенты сервиса или пострадавшие от мошенничества."
+  },
+  {
+    "id": "article-repeat",
+    "filename": "article-repeat.webp",
+    "alt": "Человек сверяет информацию в телефоне и делает записи в блокноте",
+    "author": "Marina Abrosimova",
+    "sourceUrl": "https://www.pexels.com/photo/crop-woman-with-smartphone-writing-in-notebook-at-home-7832139/",
+    "licenseUrl": "https://www.pexels.com/license/",
+    "originalImageUrl": "https://images.pexels.com/photos/7832139/pexels-photo-7832139.jpeg",
+    "usageNote": "Иллюстративная фотография. Изображённые люди не представлены как клиенты сервиса или пострадавшие от мошенничества."
+  },
+  {
+    "id": "article-helper",
+    "filename": "article-helper.webp",
+    "alt": "Женщина внимательно слушает и поддерживает собеседницу на диване",
+    "author": "MART PRODUCTION",
+    "sourceUrl": "https://www.pexels.com/photo/two-women-talking-while-sitting-on-the-sofa-7699495/",
+    "licenseUrl": "https://www.pexels.com/license/",
+    "originalImageUrl": "https://images.pexels.com/photos/7699495/pexels-photo-7699495.jpeg",
+    "usageNote": "Иллюстративная фотография. Изображённые люди не представлены как клиенты сервиса или пострадавшие от мошенничества."
+  },
+  {
+    "id": "article-restore",
+    "filename": "article-restore.webp",
+    "alt": "Человек планирует расходы с калькулятором и документами",
+    "author": "Mikhail Nilov",
+    "sourceUrl": "https://www.pexels.com/photo/person-holding-black-calculator-while-using-laptop-8296981/",
+    "licenseUrl": "https://www.pexels.com/license/",
+    "originalImageUrl": "https://images.pexels.com/photos/8296981/pexels-photo-8296981.jpeg",
+    "usageNote": "Иллюстративная фотография. Изображённые люди не представлены как клиенты сервиса или пострадавшие от мошенничества."
   }
 ]

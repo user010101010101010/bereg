@@ -29,6 +29,9 @@ test('corrupt reading progress cannot inflate counts or prevent opening an artic
 
 test('each published article has complete content, real local photography, and usable sources',()=>{
  assert.equal(articles.length,7);
+ const credits=JSON.parse(fs.readFileSync(new URL('../public/images/photo-credits.json',import.meta.url),'utf8')) as {filename:string;author:string;sourceUrl:string}[];
+ assert.equal(new Set(articles.map(article=>guides[article.id].photo)).size,articles.length);
+ for(const article of articles){const guide=guides[article.id];assert.ok(guide.photoAlt.length>10);const credit=credits.find(photo=>photo.filename===guide.photo);assert.ok(credit?.author);assert.ok(credit?.sourceUrl.startsWith('https://www.pexels.com/photo/'))}
  for(const article of articles){const guide=guides[article.id];assert.ok(guide);assert.equal(guide.sections.length,4);assert.ok(guide.sources.length>=2);assert.equal(guide.checklist.length,3);assert.equal(guide.quiz.options.length,3);assert.ok(guide.quiz.correct>=0&&guide.quiz.correct<3);assert.ok(fs.existsSync(new URL('../public/images/'+guide.photo,import.meta.url)));assert.ok(guide.sources.every(s=>s.url.startsWith('https://')))}
 });
 
