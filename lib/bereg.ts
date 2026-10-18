@@ -1,6 +1,7 @@
 import type {BankCall} from './bank-help.ts';
 import type {GoalProgress} from './case-goals.ts';
 import type {DocumentVersions} from './draft-versions.ts';
+import type {ShorePracticeStatus} from './shore-practice.ts';
 export type Answers={risk:string;timing:string;kind:string;context?:string;credit?:string;money:string;impact:string;amount:string;already:string[];mood:string;support:string;notes:string};
 export const emptyAnswers:Answers={risk:'',timing:'',kind:'',context:'',credit:'',money:'',impact:'',amount:'',already:[],mood:'',support:'',notes:''};
 export const choices={
@@ -72,7 +73,7 @@ export const articles:Article[]=[
  {id:'helper',tag:'Близким',title:'Как поддержать близкого после обмана',summary:'Спокойный разговор и помощь с конкретным действием.',tone:'blue',paragraphs:['Скажите, что готовы помочь без осуждения. Уточните, что нужно: поговорить или вместе пройти ближайший шаг.','Не требуйте рассказать историю сразу. Предложите записать факты, когда человек будет готов.','Не берите контроль над деньгами и аккаунтами без согласия. При непосредственной угрозе жизни или безопасности обратитесь в экстренные службы.'],source:sources.psychology},
  {id:'restore',tag:'Восстановление',title:'Как спланировать расходы после потери денег',summary:'Бюджет на две недели, обязательные платежи и постепенное восстановление накоплений.',tone:'green',paragraphs:[]},
 ];
-export type SavedCase={id:string;answers:Answers;documents:Record<string,string>;focusStep:string|null;completedSteps:string[];updatedAt:string;questionnaireStep?:number;intakeFurthest?:number;intakeCompleted?:boolean;role?:'self'|'helper';bankCall?:BankCall;goalProgress?:GoalProgress;documentVersions?:DocumentVersions};
+export type SavedCase={id:string;answers:Answers;documents:Record<string,string>;focusStep:string|null;completedSteps:string[];updatedAt:string;questionnaireStep?:number;intakeFurthest?:number;intakeCompleted?:boolean;role?:'self'|'helper';bankCall?:BankCall;goalProgress?:GoalProgress;documentVersions?:DocumentVersions;shorePractice?:ShorePracticeStatus};
 export function buildDraft(type:'bank'|'police',a:Answers):string{
  const facts=a.notes.trim()||'[Коротко опишите: как началось общение, что вам сообщили, какие операции и когда произошли.]';
  const consent=mechanism(a)==='card'?'Указанная операция совершена без моего согласия.':mechanism(a)==='transfer'?'Перевод был сделан мной под влиянием обмана.':'Операция связана с обстоятельствами, которые я считаю признаками мошенничества. Механизм операции пока требует уточнения.';

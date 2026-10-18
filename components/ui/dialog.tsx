@@ -71,7 +71,7 @@ function DialogContent({
           className
         )}
         {...props}
-        onCloseAutoFocus={event=>{props.onCloseAutoFocus?.(event);if(!event.defaultPrevented&&returnFocus?.current?.isConnected){event.preventDefault();returnFocus.current.focus()}}}
+        onCloseAutoFocus={event=>{props.onCloseAutoFocus?.(event);if(!event.defaultPrevented&&returnFocus?.current?.isConnected){event.preventDefault();returnFocus.current.focus({preventScroll:true})}}}
       >
         {children}
         {showCloseButton && (

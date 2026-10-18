@@ -19,6 +19,7 @@ const payloadSchema=z.object({
  intakeCompleted:z.boolean().optional(),
  role:z.enum(['self','helper']).default('self'),
  goalProgress:z.object({onboardingStarted:z.boolean(),planReceived:z.boolean()}).optional(),
+ shorePractice:z.enum(['shown','collapsed','completed']).optional(),
  bankCall:z.object({bankId:z.enum(['','other','sber','vtb','alfa','tbank','gpb']).default(''),reference:z.string().max(160),date:z.string().max(40),nextAction:z.string().max(2000),responseDue:z.string().max(160).optional()}).default({bankId:'',reference:'',date:'',nextAction:''}),
 });
 const storedSchema=payloadSchema.extend({id:z.string(),updatedAt:z.string().datetime()});

@@ -81,3 +81,11 @@ test('next-action artwork has its own grid track and leaves the full title and c
  }
  assert.equal(declarations('.compact-step-category').display,'flex');assert.equal(declarations('.compact-step-category>svg')['flex-shrink'],'0');
 });
+test('shore practice uses readable text and places actions before the scene on phones, with reduced-motion overrides',()=>{
+ for(const width of [320,360,390,430,768,1440]){
+  assert.ok(parseFloat(declarations('.shore-prompt p',width)['font-size'])>=16);assert.equal(declarations('.shore-feedback>label',width)['font-size'],'16px');assert.equal(declarations('.shore-primary-actions>.button',width)['font-size'],'16px');
+  assert.equal(declarations('.shore-dialog',width)['max-width'],'720px');assert.equal(declarations('.shore-feedback>label',width)['min-height'],'48px');
+  if(width<=600){assert.equal(declarations('.shore-session>.shore-scene',width).order,'6');assert.equal(declarations('.shore-practice-controls',width).order,'5');assert.equal(declarations('.shore-offer',width)['grid-template-columns'],'minmax(0,1fr)')}
+ }
+ assert.equal(declarations(".shore-scene[data-motion='off'] *").animation,'none');assert.match(source,/@media\(prefers-reduced-motion:reduce\)\{\.shore-scene \*\{animation:none!important;transition:none!important\}\}/);
+});

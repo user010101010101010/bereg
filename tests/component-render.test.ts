@@ -10,10 +10,11 @@ import * as bank from '../lib/bank-help.ts';
 import * as bereg from '../lib/bereg.ts';
 import * as drafts from '../lib/draft-versions.ts';
 import * as plan from '../lib/plan-progress.ts';
-function load(file:string){
+import * as shore from '../lib/shore-practice.ts';
+function load(file:string,react:unknown=React){
  const source=readFileSync(new URL('../components/'+file,import.meta.url),'utf8');const exports:any={};
  const primitives={Dialog:({open,children}:any)=>open?children:null,DialogContent:({children,...props}:any)=>React.createElement('section',{...props,role:'dialog'},children),DialogTitle:({children}:any)=>React.createElement('h2',null,children),DialogDescription:({children}:any)=>React.createElement('p',null,children),Checkbox:({checked,...props}:any)=>React.createElement('button',{'data-slot':'checkbox',role:'checkbox','aria-checked':checked,'aria-label':props['aria-label']}),Progress:()=>React.createElement('div'),RadioGroup:({children}:any)=>React.createElement('div',null,children),RadioGroupItem:({value}:any)=>React.createElement('input',{type:'radio',value,readOnly:true})};
- const require=(name:string)=>name==='react'?React:name==='lucide-react'?icons:name.includes('bank-help')?bank:name.endsWith('/bereg')?bereg:name.includes('draft-versions')?drafts:name.includes('plan-progress')?plan:name.endsWith('/step-visual')?load('step-visual.tsx'):primitives;
+ const require=(name:string)=>name==='react'?react:name==='lucide-react'?icons:name.includes('bank-help')?bank:name.endsWith('/bereg')?bereg:name.includes('draft-versions')?drafts:name.includes('plan-progress')?plan:name.includes('/lib/shore-practice')?shore:name.endsWith('/step-visual')?load('step-visual.tsx'):primitives;
  const js=ts.transpileModule('import * as __BeregReact from "react";\n'+source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.React,jsxFactory:'__BeregReact.createElement',jsxFragmentFactory:'__BeregReact.Fragment'}}).outputText;
  vm.runInNewContext(js,{exports,require});return exports;
 }
@@ -38,6 +39,18 @@ test('every plan step has a decorative themed icon, including in completed histo
  assert.ok(new Set(shapes.values()).size>=8);
  const steps=bereg.generatePlan(a);const html=renderToStaticMarkup(React.createElement(StepChecklist,{plan:steps,completed:steps.map(s=>s.id),onToggle(){},onOpen(){}}));
  for(const step of steps)assert.ok(html.includes('data-step-icon="'+step.id+'"'));
+});
+test('shore scene adds exactly three stones, plants and a path; the optional offer collapses without losing its entry',()=>{
+ const {ShoreScene,ShorePracticeOffer,ShorePracticeSession}=load('shore-practice.tsx');
+ for(let revealed=0;revealed<=3;revealed++){
+  const html=renderToStaticMarkup(React.createElement(ShoreScene,{revealed}));assert.match(html,/aria-hidden="true"/);
+  assert.equal(html.includes('data-shore-element="stones"'),revealed>=1);assert.equal((html.match(/<ellipse/g)||[]).length,revealed>=1?3:0);
+  assert.equal(html.includes('data-shore-element="plants"'),revealed>=2);assert.equal(html.includes('data-shore-element="path"'),revealed>=3);
+ }
+ const render=(status?:shore.ShorePracticeStatus)=>renderToStaticMarkup(React.createElement(ShorePracticeOffer,{status,onOpen(){},onCollapse(){}}));
+ assert.match(render(),/Можно немного передохнуть/);assert.match(render(),/Продолжить без паузы/);
+ assert.doesNotMatch(render('collapsed'),/Продолжить без паузы|Попробуйте короткую практику/);assert.match(render('collapsed'),/Открыть практику/);assert.match(render('completed'),/Практика завершена/);
+ const initial=renderToStaticMarkup(React.createElement(ShorePracticeSession,{onClose(){},onComplete(){},onSupport(){}}));assert.match(initial,/role="group"/);assert.match(initial,/aria-describedby=/);assert.match(initial,/ym-hide-content/);assert.match(initial,/Пропустить практику/);assert.doesNotMatch(initial,/Заметьте один звук|Почувствуйте опору|<input|<audio|<video/);
 });
 test('bank instruction renders no default bank, all five verified contacts, another-bank guidance and editable repeat reference',()=>{
  const {BankSupport}=load('bereg-features.tsx');

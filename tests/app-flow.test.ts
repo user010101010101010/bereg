@@ -11,6 +11,7 @@ import * as goals from '../lib/case-goals.ts';
 import * as analytics from '../lib/site-analytics.ts';
 import * as planProgress from '../lib/plan-progress.ts';
 import * as search from '../lib/article-search.ts';
+import * as shore from '../lib/shore-practice.ts';
 
 // Executes the real app handlers and effects with in-memory browser storage.
 // This is a controller regression test, not a browser or layout test.
@@ -21,7 +22,8 @@ function app(records=new Map<string,string>(),initialUrl='https://beregryadom.ru
  const location={href:initialUrl};
  const listeners=new Map<string,()=>void>();
  const dataLayer:{event:string}[]=[];const pixelViews:Record<string,unknown>[]=[];
- const window={location,dataLayer,_tmr:pixelViews,localStorage:{getItem:(k:string)=>records.get(k)??null,setItem:(k:string,v:string)=>{if(storageFailed)throw new Error('quota');records.set(k,v)},removeItem:(k:string)=>records.delete(k)},history:{pushState:(_a:unknown,_b:string,url:string)=>{location.href=new URL(url,location.href).href}},scrollTo(){},innerHeight:800,setTimeout:timer,clearTimeout:(id:number)=>timers.delete(id),addEventListener:(name:string,callback:()=>void)=>listeners.set(name,callback),removeEventListener:(name:string)=>listeners.delete(name),ym:(...args:unknown[])=>calls.push(args)};
+ const scrollPosition={left:0,top:0};
+ const window={location,dataLayer,_tmr:pixelViews,localStorage:{getItem:(k:string)=>records.get(k)??null,setItem:(k:string,v:string)=>{if(storageFailed)throw new Error('quota');records.set(k,v)},removeItem:(k:string)=>records.delete(k)},history:{pushState:(_a:unknown,_b:string,url:string)=>{location.href=new URL(url,location.href).href}},get scrollX(){return scrollPosition.left},get scrollY(){return scrollPosition.top},scrollTo(value:{top?:number;left?:number}){if(value.top!==undefined)scrollPosition.top=value.top;if(value.left!==undefined)scrollPosition.left=value.left},innerHeight:800,setTimeout:timer,clearTimeout:(id:number)=>timers.delete(id),addEventListener:(name:string,callback:()=>void)=>listeners.set(name,callback),removeEventListener:(name:string)=>listeners.delete(name),ym:(...args:unknown[])=>calls.push(args)};
  Object.assign(globalThis,{window});
  const document={title:'',visibilityState:'visible',documentElement:{style:{setProperty(){}}},addEventListener(){},removeEventListener(){},createElement:()=>({click(){}})};
  const stub=(name:string)=>Object.assign(function Component(){},{displayName:name});
@@ -31,7 +33,7 @@ function app(records=new Map<string,string>(),initialUrl='https://beregryadom.ru
   useMemo:(factory:()=>unknown)=>{cursor++;return factory()},
   useEffect:(callback:()=>void|(()=>void),deps:unknown[])=>{const i=cursor++;const previous=hooks[i];if(!previous||deps.some((v,j)=>!Object.is(v,previous.deps[j]))){pending.push(()=>{previous?.cleanup?.();hooks[i]={deps,cleanup:callback()}})}},
  };
- const modules:Record<string,unknown>={'react':React,'@/lib/bereg':bereg,'@/lib/local-case':storage,'@/lib/plan-progress':planProgress,'@/lib/case-goals':goals,'@/lib/site-analytics':analytics,'@/lib/bank-help':bank,'@/lib/draft-versions':drafts,'@/lib/article-search':search};
+ const modules:Record<string,unknown>={'react':React,'@/lib/bereg':bereg,'@/lib/local-case':storage,'@/lib/plan-progress':planProgress,'@/lib/case-goals':goals,'@/lib/site-analytics':analytics,'@/lib/bank-help':bank,'@/lib/draft-versions':drafts,'@/lib/article-search':search,'@/lib/shore-practice':shore};
  const require=(name:string)=>{if(name in modules)return modules[name];if(name.includes('photo-credits'))return {default:[]};return new Proxy({},{get:(_target,key)=>key==='__esModule'?true:key==='canAdvance'?(a:bereg.Answers,i:number)=>i===0?!!a.risk:i===1?!!a.kind&&!!a.money:i===2?!!a.impact:true:stub(String(key))})};
  const exports:any={};const source=readFileSync(new URL('../app/bereg-app.tsx',import.meta.url),'utf8');
  const js=ts.transpileModule('import * as __BeregReact from "react";\n'+source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.React,jsxFactory:'__BeregReact.createElement',jsxFragmentFactory:'__BeregReact.Fragment'}}).outputText;
@@ -44,10 +46,39 @@ function app(records=new Map<string,string>(),initialUrl='https://beregryadom.ru
  function click(label:string){const button=nodes().find(element=>name(element)==='button'&&text(element).trim()===label);assert.ok(button,'Missing button '+label);button.props.onClick();render()}
  function flush(){for(const [id,value] of [...timers])if(value.delay<=200){timers.delete(id);value.callback()}render()}
  const navigate=(view:string)=>{find('SiteHeader').onNavigate(view);render()};
- render();return {find,click,render,flush,navigate,records,calls,dataLayer,pixelViews,listeners,copied,failStorage:(value:boolean)=>{storageFailed=value},blockClipboard:()=>{clipboardBlocked=true},visibleText:()=>text(tree)};
+ render();return {has:(type:string)=>nodes().some(element=>name(element)===type),nodeList:()=>nodes(),setScroll:(top:number,left=0)=>{scrollPosition.top=top;scrollPosition.left=left},getScroll:()=>({...scrollPosition}),find,click,render,flush,navigate,records,calls,dataLayer,pixelViews,listeners,copied,failStorage:(value:boolean)=>{storageFailed=value},blockClipboard:()=>{clipboardBlocked=true},visibleText:()=>text(tree)};
 }
 const complete={...bereg.emptyAnswers,risk:'yes',kind:'transfer',money:'own',impact:'savings',notes:'Вымышленная история для регрессии'};
 function finish(h:ReturnType<typeof app>){h.click('Составить план действий');h.find('CaseIntake').onChange(complete);h.render();h.find('CaseIntake').onPlan();h.render();h.flush()}
+test('shore offer appears only in the finished plan; security stays first; declining survives reload without blocking work',()=>{
+ const h=app();assert.equal(h.has('ShorePracticeOffer'),false);assert.equal(h.has('ShorePracticeSession'),false);
+ h.click('Составить план действий');h.find('CaseIntake').onChange({...complete,mood:'overwhelmed'});h.render();h.flush();assert.equal(h.has('ShorePracticeOffer'),false);
+ h.find('CaseIntake').onPlan();h.render();h.flush();assert.equal(h.find('SiteHeader').view,'plan');assert.equal(h.has('ShorePracticeSession'),false);assert.equal(h.find('ShorePracticeOffer').prominent,true);
+ const nodes=h.nodeList();assert.ok(nodes.findIndex(n=>n.props?.className==='next-step lime')<nodes.findIndex(n=>n.type?.displayName==='ShorePracticeOffer'));
+ assert.equal(storage.loadLocalCase()!.shorePractice,'shown');const before=storage.loadLocalCase()!;
+ h.find('ShorePracticeOffer').onCollapse();h.render();h.flush();assert.equal(storage.loadLocalCase()!.shorePractice,'collapsed');assert.deepEqual(storage.loadLocalCase()!.completedSteps,before.completedSteps);
+ const resumed=app(h.records);resumed.click('Продолжить план действий');assert.equal(resumed.find('ShorePracticeOffer').status,'collapsed');assert.equal(resumed.has('ShorePracticeSession'),false);assert.ok(resumed.has('StepChecklist'));
+ resumed.find('ShorePracticeOffer').onOpen();resumed.render();assert.equal(resumed.has('ShorePracticeSession'),true);resumed.find('Dialog').onOpenChange(false);resumed.render();resumed.flush();assert.equal(storage.loadLocalCase()!.shorePractice,'collapsed');
+});
+test('shore completion preserves the exact plan, drafts, funnel events and return position; support remains available',()=>{
+ const h=app();finish(h);const list=h.nodeList();assert.ok(list.findIndex(n=>n.type?.displayName==='StepChecklist')<list.findIndex(n=>n.type?.displayName==='ShorePracticeOffer'));
+ h.navigate('case');h.find('CaseDashboard').onDraft('bank');h.render();h.find('DraftEditor').onChange('Закрытый тестовый черновик');h.render();h.flush();h.find('DraftEditor').onClose();h.render();h.navigate('plan');
+ const before=storage.loadLocalCase()!,events=JSON.stringify([h.calls,h.dataLayer]);h.setScroll(620,4);h.find('ShorePracticeOffer').onOpen();h.render();assert.equal(h.find('SiteHeader').view,'plan');
+ const restore=h.find('DialogContent').onCloseAutoFocus;assert.equal(h.find('ShorePracticeSession').returnLabel,'Вернуться к плану');h.find('ShorePracticeSession').onComplete();h.render();h.flush();
+ const after=storage.loadLocalCase()!;assert.equal(after.shorePractice,'completed');assert.deepEqual(after.answers,before.answers);assert.deepEqual(after.documents,before.documents);assert.deepEqual(after.completedSteps,before.completedSteps);assert.equal(JSON.stringify([h.calls,h.dataLayer]),events);
+ h.find('ShorePracticeSession').onSupport();h.render();assert.equal(h.has('ShorePracticeSession'),false);assert.match(h.visibleText(),/Психологическая помощь МЧС/);h.find('Dialog').onOpenChange(false);h.render();h.setScroll(0);restore();assert.deepEqual(h.getScroll(),{left:4,top:620});
+ h.find('ShorePracticeOffer').onOpen();h.render();h.find('ShorePracticeSession').onClose();h.render();h.flush();assert.equal(storage.loadLocalCase()!.shorePractice,'completed');
+});
+test('practice is manually accessible in support before intake without creating a case, and each new case has its own offer',()=>{
+ const h=app();h.find('SiteHeader').onSupport();h.render();h.click('Открыть практику «Найти берег»');assert.equal(h.has('ShorePracticeSession'),true);h.find('ShorePracticeSession').onComplete();h.render();h.find('ShorePracticeSession').onClose();h.render();h.flush();assert.equal(storage.loadLocalCase(),null);
+ finish(h);h.find('ShorePracticeOffer').onCollapse();h.render();h.flush();const self=storage.loadLocalCase()!;
+ h.navigate('home');h.click('Помогаю близкому');h.click('Пройти опрос вместе');h.click('Создать отдельный случай для близкого');h.flush();assert.equal(storage.loadLocalCase()!.shorePractice,undefined);
+ h.find('CaseIntake').onChange(complete);h.render();h.find('CaseIntake').onPlan();h.render();h.flush();assert.equal(storage.loadLocalCase()!.shorePractice,'shown');assert.equal(storage.loadLocalCases().find(c=>c.id===self.id)!.shorePractice,'collapsed');
+});
+test('failed practice-status persistence leaves previous data intact and retry saves the current choice',()=>{
+ const h=app();finish(h);const before=storage.loadLocalCase()!;h.failStorage(true);h.find('ShorePracticeOffer').onCollapse();h.render();h.flush();assert.equal(storage.loadLocalCase()!.shorePractice,'shown');assert.equal(h.find('ShorePracticeOffer').status,'collapsed');assert.match(h.visibleText(),/Не удалось сохранить/);
+ h.failStorage(false);h.click('Проверить сохранение снова');h.flush();assert.equal(storage.loadLocalCase()!.shorePractice,'collapsed');assert.deepEqual(storage.loadLocalCase()!.answers,before.answers);
+});
 test('removed secondary scenarios have no home entries and old URLs safely open home',()=>{
  for(const view of ['check','protect']){const h=app(undefined,'https://beregryadom.ru/?view='+view);assert.equal(h.find('SiteHeader').view,'home');assert.doesNotMatch(h.visibleText(),/Хочу разобраться в подозрительной ситуации|Восстановление и защита|Посмотреть ориентиры/)}
  const source=readFileSync(new URL('../app/bereg-app.tsx',import.meta.url),'utf8');assert.doesNotMatch(source,/secondary-entries|view==='check'|view==='protect'|checkedSigns|signsResult/);
