@@ -72,3 +72,12 @@ test('long dialog contents cannot flex-shrink fields, notices or instruction sec
  const children=declarations("[data-slot='dialog-content']>:not([data-slot='dialog-close'])");assert.equal(children['flex-shrink'],'0');assert.equal(children['min-width'],'0');
  const close=declarations("[data-slot='dialog-content']>[data-slot='dialog-close']");assert.equal(close.position,'sticky');assert.equal(close['min-height'],'44px');
 });
+test('next-action artwork has its own grid track and leaves the full title and controls width on phones',()=>{
+ for(const width of widths){
+  const card=declarations('.next-step',width),art=declarations('.step-artwork',width);assert.equal(card.display,'grid');
+  assert.equal(card['grid-template-columns'],width<=600?'minmax(0,1fr) 72px':width<=768?'minmax(0,1fr) 136px':'minmax(0,1fr) 176px');
+  assert.equal(art.width,width<=600?'72px':width<=768?'136px':'176px');assert.equal(art.height,art.width);assert.equal(art['pointer-events'],'none');
+  if(width<=600){assert.equal(declarations('.next-step-heading h2',width)['grid-column'],'1/-1');assert.equal(declarations('.next-step-actions',width)['grid-column'],'1/-1');assert.equal(art['grid-row'],'1')}
+ }
+ assert.equal(declarations('.compact-step-category').display,'flex');assert.equal(declarations('.compact-step-category>svg')['flex-shrink'],'0');
+});

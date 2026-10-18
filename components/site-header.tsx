@@ -21,7 +21,7 @@ export function SiteHeader({view,menuOpen,onMenuChange,onNavigate,onSupport}:Pro
   window.addEventListener('scroll',schedule,{passive:true});window.addEventListener('resize',schedule);
   return()=>{window.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);if(frame)window.cancelAnimationFrame(frame)};
  },[menuOpen]);
- const current=view==='article'?'materials':['intake','plan','helper','protect','check'].includes(view)?'home':view;
+ const current=view==='article'?'materials':['intake','plan','helper'].includes(view)?'home':view;
  const navigate=(event:MouseEvent<HTMLAnchorElement>,destination:HeaderDestination)=>{
   if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
   event.preventDefault();onMenuChange(false);onNavigate(destination);

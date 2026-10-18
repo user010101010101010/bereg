@@ -13,7 +13,7 @@ import * as plan from '../lib/plan-progress.ts';
 function load(file:string){
  const source=readFileSync(new URL('../components/'+file,import.meta.url),'utf8');const exports:any={};
  const primitives={Dialog:({open,children}:any)=>open?children:null,DialogContent:({children,...props}:any)=>React.createElement('section',{...props,role:'dialog'},children),DialogTitle:({children}:any)=>React.createElement('h2',null,children),DialogDescription:({children}:any)=>React.createElement('p',null,children),Checkbox:({checked,...props}:any)=>React.createElement('button',{'data-slot':'checkbox',role:'checkbox','aria-checked':checked,'aria-label':props['aria-label']}),Progress:()=>React.createElement('div'),RadioGroup:({children}:any)=>React.createElement('div',null,children),RadioGroupItem:({value}:any)=>React.createElement('input',{type:'radio',value,readOnly:true})};
- const require=(name:string)=>name==='react'?React:name==='lucide-react'?icons:name.includes('bank-help')?bank:name.endsWith('/bereg')?bereg:name.includes('draft-versions')?drafts:name.includes('plan-progress')?plan:primitives;
+ const require=(name:string)=>name==='react'?React:name==='lucide-react'?icons:name.includes('bank-help')?bank:name.endsWith('/bereg')?bereg:name.includes('draft-versions')?drafts:name.includes('plan-progress')?plan:name.endsWith('/step-visual')?load('step-visual.tsx'):primitives;
  const js=ts.transpileModule('import * as __BeregReact from "react";\n'+source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.React,jsxFactory:'__BeregReact.createElement',jsxFragmentFactory:'__BeregReact.Fragment'}}).outputText;
  vm.runInNewContext(js,{exports,require});return exports;
 }
@@ -27,6 +27,17 @@ test('pending and completed rows separate the checkbox hit area from the instruc
  for(const label of pending.matchAll(/<label class="compact-step-check">([\s\S]*?)<\/label>/g))assert.doesNotMatch(label[1],/compact-step-open/);
  const done=render(steps.map((step:bereg.Step)=>step.id));assert.doesNotMatch(done,/aria-label="Оставшиеся задачи"/);assert.match(done,/aria-label="Выполненные задачи"/);assert.equal((done.match(/aria-checked="true"/g)||[]).length,steps.length);
  const oneRemaining=render(steps.slice(1).map((step:bereg.Step)=>step.id));assert.doesNotMatch(oneRemaining,/aria-label="Оставшиеся задачи"/);
+});
+test('every plan step has a decorative themed icon, including in completed history',()=>{
+ const {StepIcon,StepArtwork}=load('step-visual.tsx');const {StepChecklist}=load('bereg-features.tsx');
+ const shapes=new Map<string,string>();
+ for(const id of Object.keys(bereg.steps)){
+  const icon=renderToStaticMarkup(React.createElement(StepIcon,{stepId:id}));assert.ok(icon.includes('data-step-icon="'+id+'"'));assert.match(icon,/aria-hidden="true"/);assert.match(icon,/stroke-width="1.7"/);shapes.set(id,icon.match(/class="([^"]+)"/)![1]);
+  const artwork=renderToStaticMarkup(React.createElement(StepArtwork,{stepId:id}));assert.ok(artwork.includes('data-step-artwork="'+id+'"'));assert.match(artwork,/<figure class="step-artwork" aria-hidden="true"/);assert.match(artwork,/step-artwork-waves/);assert.doesNotMatch(artwork,/<img|<button/);
+ }
+ assert.ok(new Set(shapes.values()).size>=8);
+ const steps=bereg.generatePlan(a);const html=renderToStaticMarkup(React.createElement(StepChecklist,{plan:steps,completed:steps.map(s=>s.id),onToggle(){},onOpen(){}}));
+ for(const step of steps)assert.ok(html.includes('data-step-icon="'+step.id+'"'));
 });
 test('bank instruction renders no default bank, all five verified contacts, another-bank guidance and editable repeat reference',()=>{
  const {BankSupport}=load('bereg-features.tsx');

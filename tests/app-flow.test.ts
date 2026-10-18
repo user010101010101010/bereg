@@ -14,11 +14,11 @@ import * as search from '../lib/article-search.ts';
 
 // Executes the real app handlers and effects with in-memory browser storage.
 // This is a controller regression test, not a browser or layout test.
-function app(records=new Map<string,string>()){
+function app(records=new Map<string,string>(),initialUrl='https://beregryadom.ru/'){
  let cursor=0,dirty=false;const hooks:any[]=[];let pending:(()=>void)[]=[];let tree:any;let timerId=0;
  const timers=new Map<number,{callback:()=>void;delay:number}>();const calls:unknown[][]=[];let clipboardBlocked=false,storageFailed=false;const copied:string[]=[];
  const timer=(callback:()=>void,delay:number)=>{timers.set(++timerId,{callback,delay});return timerId};
- const location={href:'https://beregryadom.ru/'};
+ const location={href:initialUrl};
  const listeners=new Map<string,()=>void>();
  const dataLayer:{event:string}[]=[];const pixelViews:Record<string,unknown>[]=[];
  const window={location,dataLayer,_tmr:pixelViews,localStorage:{getItem:(k:string)=>records.get(k)??null,setItem:(k:string,v:string)=>{if(storageFailed)throw new Error('quota');records.set(k,v)},removeItem:(k:string)=>records.delete(k)},history:{pushState:(_a:unknown,_b:string,url:string)=>{location.href=new URL(url,location.href).href}},scrollTo(){},innerHeight:800,setTimeout:timer,clearTimeout:(id:number)=>timers.delete(id),addEventListener:(name:string,callback:()=>void)=>listeners.set(name,callback),removeEventListener:(name:string)=>listeners.delete(name),ym:(...args:unknown[])=>calls.push(args)};
@@ -48,6 +48,15 @@ function app(records=new Map<string,string>()){
 }
 const complete={...bereg.emptyAnswers,risk:'yes',kind:'transfer',money:'own',impact:'savings',notes:'Вымышленная история для регрессии'};
 function finish(h:ReturnType<typeof app>){h.click('Составить план действий');h.find('CaseIntake').onChange(complete);h.render();h.find('CaseIntake').onPlan();h.render();h.flush()}
+test('removed secondary scenarios have no home entries and old URLs safely open home',()=>{
+ for(const view of ['check','protect']){const h=app(undefined,'https://beregryadom.ru/?view='+view);assert.equal(h.find('SiteHeader').view,'home');assert.doesNotMatch(h.visibleText(),/Хочу разобраться в подозрительной ситуации|Восстановление и защита|Посмотреть ориентиры/)}
+ const source=readFileSync(new URL('../app/bereg-app.tsx',import.meta.url),'utf8');assert.doesNotMatch(source,/secondary-entries|view==='check'|view==='protect'|checkedSigns|signsResult/);
+});
+test('next-action artwork follows the current step and saved completion after reload',()=>{
+ const h=app();finish(h);const first=h.find('StepChecklist').plan[0];assert.equal(h.find('StepArtwork').stepId,first.id);
+ h.find('StepChecklist').onToggle(first.id,true);h.render();h.flush();const next=h.find('StepArtwork').stepId;assert.notEqual(next,first.id);
+ const resumed=app(h.records);resumed.click('Продолжить план действий');assert.equal(resumed.find('StepArtwork').stepId,next);assert.deepEqual(resumed.dataLayer,[]);
+});
 test('real app: pixel tracks route transitions once and shares the existing anonymous funnel lifecycle',()=>{
  const h=app();assert.equal(h.pixelViews.length,0); // HTML already counts the initial page.
  h.navigate('about');assert.equal(h.pixelViews.length,1);assert.equal(h.pixelViews[0].url,'https://beregryadom.ru/?view=about');assert.equal(h.pixelViews[0].referrer,'https://beregryadom.ru/');

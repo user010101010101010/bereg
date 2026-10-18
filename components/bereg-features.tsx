@@ -5,11 +5,12 @@ import {banks,bankContactsChecked,bankQuestions,bankScript,bankSafety,emptyBankC
 import {answerLabel,generatePlan,isIntakeComplete,type SavedCase,type Answers,type Step} from '../lib/bereg';
 import {getPlanProgress} from '../lib/plan-progress';
 import {draftNeedsReview} from '../lib/draft-versions';
+import {StepIcon} from './step-visual';
 
 export function StepChecklist({plan,completed,onToggle,onOpen,omitNext=true}:{plan:Step[];completed:string[];onToggle:(id:string,checked:boolean)=>void;onOpen:(step:Step)=>void;omitNext?:boolean}){
  const next=plan.find(s=>!completed.includes(s.id));const done=plan.filter(s=>completed.includes(s.id));
  const remaining=plan.filter(s=>!completed.includes(s.id)&&(!omitNext||s.id!==next?.id));
- const row=(s:Step)=><li key={s.id} className={'compact-step '+(completed.includes(s.id)?'done':'')}><label className="compact-step-check"><Checkbox checked={completed.includes(s.id)} onCheckedChange={v=>onToggle(s.id,v===true)} aria-label={'Задача выполнена: '+s.title}/></label><button className="compact-step-open" onClick={()=>onOpen(s)}><span className="compact-step-copy"><span>{s.category}</span><strong>{s.title}</strong></span><ArrowRight size={18} aria-hidden="true"/></button></li>;
+ const row=(s:Step)=><li key={s.id} className={'compact-step '+(completed.includes(s.id)?'done':'')}><label className="compact-step-check"><Checkbox checked={completed.includes(s.id)} onCheckedChange={v=>onToggle(s.id,v===true)} aria-label={'Задача выполнена: '+s.title}/></label><button className="compact-step-open" onClick={()=>onOpen(s)}><span className="compact-step-copy"><span className="compact-step-category"><StepIcon stepId={s.id} size={16}/>{s.category}</span><strong>{s.title}</strong></span><ArrowRight size={18} aria-hidden="true"/></button></li>;
  return <>{remaining.length>0&&<ol className="compact-steps" aria-label="Оставшиеся задачи">{remaining.map(row)}</ol>}{done.length>0&&<details className="completed-history"><summary>Вы уже сделали · {done.length}</summary><ol className="compact-steps" aria-label="Выполненные задачи">{done.map(row)}</ol><p className="field-note">Инструкции доступны и после выполнения. Отметку можно снять.</p></details>}</>;
 }
 export function BankSupport({answers,value,onChange,onCopy}:{answers:Answers;value:BankCall;onChange:(v:BankCall)=>void;onCopy:(s:string)=>void}){
