@@ -172,3 +172,31 @@
 @media(max-width:600px){.site-header.capsule-header{top:12px}}
 @media(prefers-reduced-motion:reduce){.site-header.capsule-header{transition:none}}
 .guide-section,.guide-practice{scroll-margin-top:120px}
+
+/* Shared social links on the project page and in the site footer. */
+.social-links{display:flex;gap:10px}
+.social-links a{display:flex;align-items:center;gap:10px;min-height:44px;text-decoration:none;color:var(--green);border-radius:99px;padding:10px 15px;background:#e9efdf;transition:background .18s,color .18s}
+.social-links a:hover{background:#dfe9d3}
+.social-link-icon{display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.social-link-copy{display:flex;flex-direction:column;min-width:0}
+.social-link-copy strong{font-size:.8125rem;font-weight:500;line-height:1.5}
+.social-link-arrow{flex-shrink:0}
+.about-social{margin-top:58px}
+.about-social .about-section-heading>p{font-size:.9375rem;line-height:1.8;color:#617358;margin-top:17px}
+.social-links-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.social-links-cards a{padding:26px 25px;border-radius:21px;background:#fff;gap:17px;min-width:0}
+.social-links-cards a:hover{background:#eaf0df}
+.social-links-cards .social-link-icon{height:46px;width:46px;border-radius:15px;background:#edf3e7}
+.social-links-cards .social-link-copy{gap:4px}
+.social-links-cards .social-link-copy strong{font-family:Manrope,Onest,sans-serif;font-size:1.1875rem;font-weight:500}
+.social-links-cards .social-link-copy>span{font-size:.75rem;color:#63765b}
+.social-links-cards .social-link-arrow{margin-left:auto}
+.site-footer.social-footer{display:flex;flex-direction:column;align-items:stretch;gap:23px}
+.site-footer.social-footer>div{margin:0;width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:20px 27px}
+.footer-nav{display:flex;flex-wrap:wrap;gap:15px 25px;margin-left:auto}
+.footer-nav button{min-height:44px;color:inherit}
+.site-footer.social-footer>.footer-social-row{padding-top:20px;border-top:1px solid var(--border);justify-content:space-between;gap:13px 24px}
+.footer-social-row>span{font-size:.8125rem}
+@media(max-width:1100px){.social-links-cards{gap:15px}.social-links-cards a{padding:22px 18px;gap:12px}.social-links-cards .social-link-icon{width:40px;height:40px}.social-links-cards .social-link-copy strong{font-size:1.0625rem}}
+@media(max-width:760px){.social-links-cards{grid-template-columns:1fr}.social-links-cards a{padding:21px 23px}.social-links-cards .social-link-copy strong{font-size:1.125rem}.footer-nav{width:100%;margin-left:0;gap:10px 22px}.site-footer.social-footer{gap:18px}.site-footer.social-footer>.footer-main{gap:12px 20px}}
+@media(max-width:600px){.about-social{margin-top:38px}.about-social .about-section-heading>p{font-size:.875rem;margin-top:15px}.social-links{flex-wrap:wrap}.social-links-cards{gap:12px}.social-links-compact{gap:8px}.social-links-compact a{gap:7px;padding:10px 12px}.social-links-compact .social-link-icon svg{width:18px;height:18px}.social-links-compact .social-link-arrow{width:14px;height:14px}.social-links-compact .social-link-copy strong{font-size:.75rem}.footer-main>span{font-size:.8125rem}.footer-nav{font-size:.8125rem}}

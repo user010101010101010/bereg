@@ -1,4 +1,5 @@
 import {ArrowRight,BookOpen,HeartHandshake,LockKeyhole,Route,ShieldCheck} from 'lucide-react';
+import {SocialLinks} from './social-links';
 
 export function AboutPage({onStart,onMaterials,hasPlan}:{onStart:()=>void;onMaterials:()=>void;hasPlan:boolean}){
  return <div className="about-page">
@@ -18,6 +19,7 @@ export function AboutPage({onStart,onMaterials,hasPlan}:{onStart:()=>void;onMate
    <div><span>03</span><div><h3>С понятными источниками</h3><p>В материалах есть ссылки на Банк России, официальные службы помощи и другие источники. Возможность возврата денег зависит от обстоятельств вашего случая.</p></div></div>
   </div></section>
   <div className="about-storage"><LockKeyhole size={23} strokeWidth={1.6}/><div><h3>Ваш случай остаётся под рукой</h3><p>Ответы, отметки и черновики автоматически сохраняются в этом браузере. План можно скачать в PDF. При смене устройства или удалении данных браузера сохранённый случай не переносится.</p></div></div>
+  <section className="about-social" aria-labelledby="about-social-title"><div className="about-section-heading"><span className="eyebrow">Остаёмся на связи</span><h2 id="about-social-title">Берег в соцсетях</h2><p>Выберите удобную площадку, чтобы оставаться на связи с «Берегом».</p></div><SocialLinks variant="cards"/></section>
   <section className="about-invitation" aria-labelledby="about-invitation-title"><div><span className="eyebrow">Можно начать с малого</span><h2 id="about-invitation-title">Один шаг — уже начало.</h2><p>Опишите свою ситуацию или откройте материал, который нужен сейчас.</p></div><div className="about-invitation-actions"><button className="button" onClick={onStart}>{hasPlan?'Открыть свой план':'Составить свой план'}<ArrowRight size={18}/></button><button className="text-button" onClick={onMaterials}><BookOpen size={17}/>Почитать материалы</button></div></section>
  </div>;
 }
