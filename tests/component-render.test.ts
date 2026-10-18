@@ -18,6 +18,16 @@ function load(file:string){
  vm.runInNewContext(js,{exports,require});return exports;
 }
 const a={...bereg.emptyAnswers,risk:'yes',kind:'transfer',money:'own',impact:'savings'};
+test('pending and completed rows separate the checkbox hit area from the instruction button and do not render empty lists',()=>{
+ const {StepChecklist}=load('bereg-features.tsx');const steps=bereg.generatePlan(a);
+ const render=(completed:string[],omitNext=true)=>renderToStaticMarkup(React.createElement(StepChecklist,{plan:steps,completed,omitNext,onToggle(){},onOpen(){}}));
+ const pending=render([],false);assert.equal((pending.match(/class="compact-step-check"/g)||[]).length,steps.length);assert.equal((pending.match(/class="compact-step-open"/g)||[]).length,steps.length);
+ assert.equal((pending.match(/<label class="compact-step-check"><button data-slot="checkbox"/g)||[]).length,steps.length);
+ assert.equal((pending.match(/<button class="compact-step-open"[^>]*><span class="compact-step-copy">/g)||[]).length,steps.length);
+ for(const label of pending.matchAll(/<label class="compact-step-check">([\s\S]*?)<\/label>/g))assert.doesNotMatch(label[1],/compact-step-open/);
+ const done=render(steps.map((step:bereg.Step)=>step.id));assert.doesNotMatch(done,/aria-label="Оставшиеся задачи"/);assert.match(done,/aria-label="Выполненные задачи"/);assert.equal((done.match(/aria-checked="true"/g)||[]).length,steps.length);
+ const oneRemaining=render(steps.slice(1).map((step:bereg.Step)=>step.id));assert.doesNotMatch(oneRemaining,/aria-label="Оставшиеся задачи"/);
+});
 test('bank instruction renders no default bank, all five verified contacts, another-bank guidance and editable repeat reference',()=>{
  const {BankSupport}=load('bereg-features.tsx');
  const render=(value:bank.BankCall,answers=a)=>renderToStaticMarkup(React.createElement(BankSupport,{answers,value,onChange(){},onCopy(){}}));
