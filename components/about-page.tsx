@@ -1,0 +1,23 @@
+import {ArrowRight,BookOpen,HeartHandshake,LockKeyhole,Route,ShieldCheck} from 'lucide-react';
+
+export function AboutPage({onStart,onMaterials,hasPlan}:{onStart:()=>void;onMaterials:()=>void;hasPlan:boolean}){
+ return <div className="about-page">
+  <section className="about-hero" aria-labelledby="about-title">
+   <div className="about-hero-copy"><span className="eyebrow">О проекте «Берег»</span><h1 id="about-title">После обмана<br/>можно найти <span>опору.</span></h1><p className="about-lead">Берег — социальный проект для людей, которые потеряли деньги из-за мошенничества, и тех, кто хочет помочь близкому.</p><p>Мы помогаем разобраться в случившемся, выбрать ближайшее действие и постепенно вернуться к привычной жизни. Спокойно, с понятным планом и поддержкой.</p><button className="button primary" onClick={onStart}>{hasPlan?'Вернуться к своему плану':'Разобраться в ситуации'}<ArrowRight size={18}/></button></div>
+   <figure className="about-hero-photo"><img src="./images/shore.webp" alt="Спокойный берег и вода" width="900" height="900"/><figcaption><HeartHandshake size={18} strokeWidth={1.7}/><span>Рядом. Без осуждения.</span></figcaption></figure>
+  </section>
+  <section className="about-purpose" aria-labelledby="about-purpose-title"><div><span className="eyebrow">Зачем мы это делаем</span><h2 id="about-purpose-title">Чтобы со случившимся<br/>было легче справиться.</h2></div><div><p>После потери денег бывает трудно собраться: нужно связаться с банком, сохранить документы, обратиться за помощью. Одновременно могут появиться тревога, стыд и страх рассказать близким.</p><p>Берег соединяет практические шаги и эмоциональную поддержку. Здесь можно двигаться в своём темпе и начать с того, на что сейчас хватает сил.</p></div></section>
+  <section className="about-how" aria-labelledby="about-how-title"><div className="about-section-heading"><span className="eyebrow">Как помогает Берег</span><h2 id="about-how-title">От растерянности —<br/>к понятным действиям.</h2></div><div className="about-how-grid">
+   <div className="about-how-card"><span className="about-step-number">01</span><Route size={27} strokeWidth={1.5}/><h3>Разбираемся в ситуации</h3><p>Несколько вопросов помогают учесть, что произошло, какие последствия важнее всего и что вы уже сделали.</p></div>
+   <div className="about-how-card"><span className="about-step-number">02</span><ShieldCheck size={27} strokeWidth={1.5}/><h3>Собираем персональный план</h3><p>В одном месте — последовательность действий, сценарий разговора с банком, черновики обращений и контакты помощи.</p></div>
+   <div className="about-how-card"><span className="about-step-number">03</span><HeartHandshake size={27} strokeWidth={1.5}/><h3>Поддерживаем дальше</h3><p>Можно отмечать выполненные шаги, возвращаться к своему случаю и читать материалы о поддержке, восстановлении и защите.</p></div>
+  </div></section>
+  <section className="about-principles" aria-labelledby="about-principles-title"><div className="about-section-heading"><span className="eyebrow">Что для нас важно</span><h2 id="about-principles-title">Бережно.<br/>Понятно. По делу.</h2><p>Помощь начинается с уважения к человеку и его решениям.</p></div><div className="about-principles-list">
+   <div><span>01</span><div><h3>Без осуждения</h3><p>Обман может случиться с разными людьми. Вы заслуживаете поддержки и уважительного разговора.</p></div></div>
+   <div><span>02</span><div><h3>В вашем темпе</h3><p>Вы выбираете, когда продолжить, к какому шагу вернуться и какую помощь принять.</p></div></div>
+   <div><span>03</span><div><h3>С понятными источниками</h3><p>В материалах есть ссылки на Банк России, официальные службы помощи и другие источники. Возможность возврата денег зависит от обстоятельств вашего случая.</p></div></div>
+  </div></section>
+  <div className="about-storage"><LockKeyhole size={23} strokeWidth={1.6}/><div><h3>Ваш случай остаётся под рукой</h3><p>Ответы, отметки и черновики автоматически сохраняются в этом браузере. План можно скачать в PDF. При смене устройства или удалении данных браузера сохранённый случай не переносится.</p></div></div>
+  <section className="about-invitation" aria-labelledby="about-invitation-title"><div><span className="eyebrow">Можно начать с малого</span><h2 id="about-invitation-title">Один шаг — уже начало.</h2><p>Опишите свою ситуацию или откройте материал, который нужен сейчас.</p></div><div className="about-invitation-actions"><button className="button" onClick={onStart}>{hasPlan?'Открыть свой план':'Составить свой план'}<ArrowRight size={18}/></button><button className="text-button" onClick={onMaterials}><BookOpen size={17}/>Почитать материалы</button></div></section>
+ </div>;
+}

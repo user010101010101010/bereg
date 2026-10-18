@@ -5,18 +5,20 @@ import {getPlanProgress} from '@/lib/plan-progress';
 import {createCaseGoalTracker} from '@/lib/case-goals';
 import {StepChecklist,BankSupport,CaseDashboard} from '@/components/bereg-features';
 import {ArticleTile,ArticleCarousel,ArticlePage,ReadingSummary} from '@/components/bereg-content';
+import {SiteHeader} from '@/components/site-header';
+import {AboutPage} from '@/components/about-page';
 import {LegalHelp,PoliceFilingNote} from '@/components/bereg-legal';
 import photoCredits from '../public/images/photo-credits.json';
 import {emptyBankCall,type BankCall} from '@/lib/bank-help';
-import {HeartHandshake,ShieldCheck,FileText,LifeBuoy,Users,LockKeyhole,BookOpen,Download,Copy,Check,ChevronLeft,ChevronRight,ArrowRight,Search,Wallet,Bookmark,Phone,ExternalLink,Plus,Menu,X,CheckCircle2} from 'lucide-react';
+import {HeartHandshake,ShieldCheck,FileText,LifeBuoy,Users,LockKeyhole,BookOpen,Download,Copy,Check,ChevronLeft,ChevronRight,ArrowRight,Search,Wallet,Bookmark,Phone,ExternalLink,Plus,X,CheckCircle2} from 'lucide-react';
 import {RadioGroup,RadioGroupItem} from '@/components/ui/radio-group';
 import {Checkbox} from '@/components/ui/checkbox';
 import {Progress} from '@/components/ui/progress';
 import {Dialog,DialogContent,DialogTitle,DialogDescription} from '@/components/ui/dialog';
 import {Answers,emptyAnswers,choices,answerLabel,generatePlan,Step,articles,Article,sources,SavedCase,buildDraft,steps,isIntakeComplete,hasCaseAnswers} from '@/lib/bereg';
 
-type View='home'|'intake'|'plan'|'materials'|'case'|'helper'|'protect'|'check'|'article';
-const views:View[]=['home','intake','plan','materials','case','helper','protect','check','article'];
+type View='home'|'intake'|'plan'|'materials'|'case'|'helper'|'protect'|'check'|'article'|'about';
+const views:View[]=['home','intake','plan','materials','case','helper','protect','check','article','about'];
 const titles=['Сначала — безопасность','Что произошло','Как потеря повлияла на вас','Что уже удалось сделать','Как вы сейчас'];
 const groupLabels=['Безопасность','Ситуация','Последствия','Ваши действия','Поддержка'];
 
@@ -65,7 +67,7 @@ export default function BeregApp(){
  useEffect(()=>{const read=()=>{const params=new URLSearchParams(window.location.search);const v=params.get('view') as View;setView(views.includes(v)?v:'home');setArticleId(params.get('article')||'')};read();window.addEventListener('popstate',read);void loadCase();return()=>window.removeEventListener('popstate',read)},[]);
  useEffect(()=>{const context=(document as unknown as {modelContext?:{registerTool:(tool:unknown,options:unknown)=>unknown}}).modelContext;if(!context?.registerTool)return;const lifecycle=new AbortController();for(const tool of [{name:'get_current_bereg_plan',title:'Посмотреть текущий план',description:'Read the current unsaved answers and plan visible on the page. Does not access saved cases.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:true},execute:(input:unknown)=>{if(!input||typeof input!=='object'||Object.keys(input).length)throw new Error('Expected empty object');return {available:hasPlan,steps:hasPlan?plan.map(s=>({id:s.id,title:s.title,category:s.category,completed:progress.completed.includes(s.id)})):[]}}},{name:'start_bereg_questionnaire',title:'Начать описание случая',description:'Navigate to the case questionnaire. Does not submit or save any data.',inputSchema:{type:'object',properties:{role:{type:'string',enum:['self','helper']}},required:['role'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute:(input:unknown)=>{const data=input as {role?:string};if(!data||!['self','helper'].includes(data.role||'')||Object.keys(data).some(k=>k!=='role'))throw new Error('Invalid role');start(data.role==='helper');return {view:'intake',question:1}}}]){try{void Promise.resolve(context.registerTool(tool,{signal:lifecycle.signal})).catch(()=>{})}catch{}}return()=>lifecycle.abort()},[hasPlan,plan,completedSteps]);
  useEffect(()=>{
-  document.title=view==='article'&&currentArticle?`${currentArticle.title} · Берег`:'Берег — поддержка без осуждения';
+  document.title=view==='article'&&currentArticle?`${currentArticle.title} · Берег`:view==='about'?'О нас · Берег':'Берег — поддержка без осуждения';
   const url=window.location.href.split('#')[0];
   if(url===lastPageUrl.current)return; // The counter's init already records the initial page.
   const referer=lastPageUrl.current;lastPageUrl.current=url;
@@ -77,8 +79,9 @@ export default function BeregApp(){
  const filtered=articles.filter(a=>(filter==='Все материалы'||a.tag===filter)&&`${a.title} ${a.summary}`.toLowerCase().includes(search.toLowerCase()));
  return <div className="app-shell">
  <a className="skip-link" href="#main">Перейти к содержанию</a>
- <header className="site-header"><button className="brand-button" onClick={()=>go('home')} aria-label="Берег — главная"><Brand/></button><nav className={menu?'open':''} aria-label="Основная навигация"><button className={view==='home'||view==='intake'||view==='plan'?'active':''} onClick={()=>go('home')}>Получить помощь</button><button className={view==='materials'||view==='article'?'active':''} onClick={()=>go('materials')}>Материалы</button><button className={view==='case'?'active':''} onClick={()=>go('case')}>Мой случай</button></nav><button className="support-header" onClick={()=>setSupport(true)}><HeartHandshake size={19}/><span>Мне сейчас тяжело</span></button><button className="mobile-menu" onClick={()=>setMenu(!menu)} aria-label={menu?'Закрыть меню':'Открыть меню'}>{menu?<X/>:<Menu/>}</button></header>
+ <SiteHeader view={view} menuOpen={menu} onMenuChange={setMenu} onNavigate={go} onSupport={()=>setSupport(true)}/>
  <main id="main" className={`main-content view-${view}`}>
+ {view==='about'&&<AboutPage hasPlan={hasPlan} onStart={()=>hasPlan?go('plan'):start()} onMaterials={()=>go('materials')}/>}
  {view==='home'&&<>
  <section className="hero-editorial" aria-labelledby="hero-title">
   <span className="hero-kicker"><img src="./favicon.svg" alt=""/>Поддержка без осуждения</span>
@@ -120,7 +123,7 @@ export default function BeregApp(){
  {view==='protect'&&<><div className="editorial-intro"><span className="eyebrow">Восстановление и защита</span><h1>Вернуть опору.<br/><span>Двигаться дальше.</span></h1><p>Небольшие шаги помогают вернуть контроль над повседневной жизнью и увереннее проверять новые предложения.</p></div><div className="recovery-grid"><button className="recovery-card green" onClick={()=>openStep(steps.restore)}><Wallet size={34}/><h2>Ближайшие расходы</h2><p>Определить важное и составить посильный план.</p><span className="card-link">Открыть памятку<Plus size={18}/></span></button><button className="recovery-card lime" onClick={()=>openStep(steps.protect)}><ShieldCheck size={34}/><h2>Защита от нового обмана</h2><p>Проверять предложения и замечать давление.</p><span className="card-link">Открыть памятку<Plus size={18}/></span></button></div><div className="section-heading"><h2>Особенно важно после потери денег</h2></div><div className="article-grid">{[articles[4],articles[1],articles[2]].map(a=><ArticleCard key={a.id} article={a} onClick={()=>openArticle(a)}/>)}</div></>}
  {view==='check'&&<><div className="editorial-intro"><span className="eyebrow">Если пока не уверены</span><h1>Проверим,<br/>что <span>настораживает.</span></h1><p>Это ориентиры для проверки ситуации. Они не устанавливают факт мошенничества.</p></div><section className="check-panel"><h2>Что происходило?</h2><div className="choices">{[['rush','Торопили и не давали проверить информацию'],['codes','Просили коды, пароли или удалённый доступ'],['safe','Предлагали перевести деньги на «безопасный счёт»'],['return','Обещали гарантированный возврат за предоплату'],['identity','Представлялись банком или ведомством без независимого подтверждения']].map(([v,l])=><label key={v} className={`choice ${checkedSigns.includes(v)?'selected':''}`}><Checkbox checked={checkedSigns.includes(v)} onCheckedChange={c=>{setCheckedSigns(c?[...checkedSigns,v]:checkedSigns.filter(x=>x!==v));setSignsResult(false)}}/><span>{l}</span></label>)}</div><button className="button primary" onClick={()=>setSignsResult(true)}>Посмотреть ориентиры</button>{signsResult&&<div className="check-result" role="status"><ShieldCheck size={28}/><h3>{checkedSigns.length?'Есть поводы проверить ситуацию':'Отсутствие этих признаков не исключает обман'}</h3><p>Свяжитесь с организацией по контактам с её официального сайта. Если деньги уже потеряны, можно перейти к описанию случая.</p><button className="button secondary" onClick={()=>start()}>Деньги уже потеряны</button><SourceLink source={sources.protection}/></div>}</section></>}
  </main>
- <footer className="site-footer"><button className="brand-button" onClick={()=>go('home')}><Brand small/></button><span>Опора после обмана.</span><div><button onClick={()=>go('materials')}>Материалы</button><button onClick={()=>setSupport(true)}>Получить поддержку</button></div></footer>
+ <footer className="site-footer"><button className="brand-button" onClick={()=>go('home')}><Brand small/></button><span>Опора после обмана.</span><div><button onClick={()=>go('about')}>О нас</button><button onClick={()=>go('materials')}>Материалы</button><button onClick={()=>setSupport(true)}>Получить поддержку</button></div></footer>
  <details className="photo-credits"><summary>Фотографии и авторы</summary><p>Иллюстративные фотографии с Unsplash и Pexels.</p><div>{photoCredits.map(photo=><a href={photo.sourceUrl} key={photo.id} target="_blank" rel="noopener noreferrer">{photo.author}<ExternalLink size={12}/></a>)}</div></details>
  <button className="floating-support" onClick={()=>setSupport(true)} aria-label="Открыть эмоциональную поддержку"><HeartHandshake size={23}/></button>
  {notice&&<div className="toast" role="status"><CheckCircle2 size={19}/>{notice}</div>}
