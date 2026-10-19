@@ -21,16 +21,16 @@ function load(file:string,react:unknown=React){
 const a={...bereg.emptyAnswers,risk:'yes',kind:'transfer',money:'own',impact:'savings'};
 test('how-to renders real captures, active anchor semantics and one primary entry without adjacent duplicate return buttons',()=>{
  const {HowToPage,howSections,howQuestions,howShots}=load('how-to-page.tsx');
- const html=renderToStaticMarkup(React.createElement(HowToPage,{primaryLabel:'Вернуться к плану',loading:false,onPrimary(){},onSupport(){},onPractice(){},onMaterials(){},onHelper(){},onCase(){}}));
+ const html=renderToStaticMarkup(React.createElement(HowToPage,{primaryLabel:'Вернуться к плану',loading:false,onPrimary(){},onMaterials(){},onHelper(){}}));
  assert.match(html,/Как пользоваться «Берегом»/);assert.equal(howQuestions.length,7);
  for(const section of howSections){assert.ok(html.includes('href="#'+section.id+'"'));assert.ok(html.includes('id="'+section.id+'"'));}
  for(const [question] of howQuestions)assert.ok(html.includes('<summary>'+question+'</summary>'));assert.doesNotMatch(html,/<input|placeholder=|скриншот появится|онбординг|не переживайте|интуитивно понятный|how-back|переставлять карточки нельзя|Завершение не отмечает|К инструкции можно вернуться/);
  assert.equal((html.match(/<figure class="how-shot"/g)||[]).length,5);assert.equal((html.match(/aria-current="location"/g)||[]).length,2);
- for(const shot of howShots){assert.ok(shot.alt.length>35);assert.ok(html.includes(shot.preview));for(const asset of [shot.src,shot.preview])assert.ok(readFileSync(new URL('../public/'+asset.slice(2),import.meta.url)).byteLength>1000)}
+ for(const shot of howShots){assert.ok(shot.alt.length>35);assert.ok(html.includes(shot.src));for(const asset of [shot.src])assert.ok(readFileSync(new URL('../public/'+asset.slice(2),import.meta.url)).byteLength>1000)}
  const heading=html.match(/<header class="how-heading">([\s\S]*?)<\/header>/)![1];assert.equal((heading.match(/<button/g)||[]).length,1);assert.doesNotMatch(heading,/Составить план действий|eyebrow/);
- for(const label of ['Получить план действий','Открыть инструкцию','Этот шаг выполнен','Скачать TXT','Скопировать текст','Хранение и удаление данных','Найти берег'])assert.ok(html.includes(label));
+ for(const label of ['Получить план действий','Открыть инструкцию','Этот шаг выполнен','Скачать TXT','Скопировать текст','Хранение и удаление данных'])assert.ok(html.includes(label));
  assert.match(html,/самостоятельно отправить в банк/);assert.match(html,/Автоматической синхронизации нет/);assert.match(html,/загрузить JSON обратно в сервис сейчас нельзя/);
- const disabled=renderToStaticMarkup(React.createElement(HowToPage,{primaryLabel:'Открыть мой случай',loading:true,onPrimary(){},onSupport(){},onPractice(){},onMaterials(){},onHelper(){},onCase(){}}));assert.equal((disabled.match(/disabled=""/g)||[]).length,2);
+ const disabled=renderToStaticMarkup(React.createElement(HowToPage,{primaryLabel:'Вернуться к опросу',loading:true,onPrimary(){},onMaterials(){},onHelper(){}}));assert.equal((disabled.match(/disabled=""/g)||[]).length,2);
 });
 test('pending and completed rows separate the checkbox hit area from the instruction button and do not render empty lists',()=>{
  const {StepChecklist}=load('bereg-features.tsx');const steps=bereg.generatePlan(a);

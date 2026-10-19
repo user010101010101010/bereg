@@ -154,7 +154,7 @@ export default function BeregApp(){
  <main id="main" className={'main-content view-'+view+(['intake','plan','case'].includes(view)?' ym-hide-content':'')}>
  {caseError&&<div className="storage-error" role="alert"><p>{caseError}</p><div><button className="button secondary" onClick={exportBackup}>Скачать копию данных</button><button className="text-button" onClick={()=>loadCase()}>Проверить сохранение снова</button>{storageMode==='local'&&<button className="text-button" onClick={()=>{setStorageMode('memory');setStorageReady(true);setCaseError('');flash('Работаем без сохранения. Скачайте результат перед закрытием страницы.')}}>Продолжить без сохранения</button>}</div></div>}
  {view==='about'&&<AboutPage hasPlan={hasPlan} onStart={resumeOrStart} onMaterials={()=>go('materials')}/>}
- {view==='how'&&<HowToPage primaryLabel={howReturn?howReturnLabels[howReturn]:saved||hasCaseAnswers(answers)?'Открыть мой случай':'Составить план действий'} onPrimary={()=>howReturn?returnFromHow():saved||hasCaseAnswers(answers)?go('case'):resumeOrStart()} loading={caseLoading} onSupport={openSupport} onPractice={openPractice} onMaterials={()=>go('materials')} onHelper={()=>go('helper')} onCase={()=>go('case')}/>}
+ {view==='how'&&<HowToPage primaryLabel={howReturn?howReturnLabels[howReturn]:saved||hasCaseAnswers(answers)?'Открыть мой случай':'Составить план действий'} onPrimary={()=>howReturn?returnFromHow():saved||hasCaseAnswers(answers)?go('case'):resumeOrStart()} loading={caseLoading} onMaterials={()=>go('materials')} onHelper={()=>go('helper')}/>}
  {view==='home'&&<>
  <section className="hero-editorial" aria-labelledby="hero-title">
   <span className="hero-kicker"><img src="./favicon.svg" alt=""/>Поддержка без осуждения</span>

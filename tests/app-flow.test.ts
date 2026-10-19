@@ -69,8 +69,8 @@ test('plan, checked steps, edited draft, bank notes and practice status survive 
 test('how-to is voluntary, available directly and in the footer, and its entry actions do not invent a case',()=>{
  const h=app(undefined,'https://beregryadom.ru/?view=how&returnTo=https://invalid.example');h.flush();assert.equal(h.find('SiteHeader').view,'how');assert.equal(h.find('HowToPage').backLabel,undefined);assert.equal(h.find('HowToPage').primaryLabel,'Составить план действий');assert.equal(storage.loadLocalCase(),null);
  h.find('HowToPage').onMaterials();h.render();assert.equal(h.find('SiteHeader').view,'materials');h.find('SiteFooter').onNavigate('how');h.render();h.find('HowToPage').onHelper();h.render();assert.equal(h.find('SiteHeader').view,'helper');assert.equal(storage.loadLocalCase(),null);
- h.find('SiteFooter').onNavigate('how');h.render();h.find('HowToPage').onSupport();h.render();assert.match(h.visibleText(),/Живого специалиста внутри сервиса нет/);assert.equal(storage.loadLocalCase(),null);
- h.find('HowToPage').onPractice();h.render();assert.equal(h.has('ShorePracticeSession'),true);h.find('ShorePracticeSession').onClose();h.render();h.find('HowToPage').onPrimary();h.render();assert.equal(h.find('SiteHeader').view,'intake');assert.equal(storage.loadLocalCase(),null);
+ h.find('SiteFooter').onNavigate('how');h.render();assert.equal(h.find('HowToPage').onSupport,undefined);assert.equal(h.find('HowToPage').onPractice,undefined);assert.equal(storage.loadLocalCase(),null);
+ h.find('HowToPage').onPrimary();h.render();assert.equal(h.find('SiteHeader').view,'intake');assert.equal(storage.loadLocalCase(),null);
 });
 test('shore offer appears only in the finished plan; security stays first; declining survives reload without blocking work',()=>{
  const h=app();assert.equal(h.has('ShorePracticeOffer'),false);assert.equal(h.has('ShorePracticeSession'),false);
