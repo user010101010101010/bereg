@@ -30,7 +30,7 @@ export function SiteHeader({view,menuOpen,onMenuChange,onNavigate,onSupport}:Pro
   <a className="header-brand" href="./" aria-label="Берег — главная" onClick={event=>navigate(event,'home')}><img src="./logo.svg" alt="Берег" width="148" height="42"/></a>
   <nav id="primary-navigation" className={`header-nav${menuOpen?' open':''}`} aria-label="Основная навигация">
    {([{view:'home',label:'Получить помощь',href:'./'},{view:'materials',label:'Материалы',href:'?view=materials'},{view:'about',label:'О нас',href:'?view=about'}] as const).map(item=><a key={item.view} href={item.href} aria-current={current===item.view?'page':undefined} onClick={event=>navigate(event,item.view)}>{item.label}</a>)}
-   <a className="mobile-navigation-extra" href="?view=case" onClick={event=>navigate(event,'case')}>Мой случай и документы</a><button className="mobile-navigation-extra menu-support" onClick={()=>{onMenuChange(false);onSupport()}}>Мне сейчас тяжело — пауза и поддержка</button>
+   <a className="mobile-navigation-extra" href="?view=case" onClick={event=>navigate(event,'case')}>Мой случай и документы</a>
   </nav>
   <div className="header-actions">
    <button className="header-support" onClick={onSupport} aria-label="Мне сейчас тяжело" title="Мне сейчас тяжело"><HeartHandshake size={19} strokeWidth={1.7}/></button>

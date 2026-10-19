@@ -161,7 +161,7 @@ export default function BeregApp(){
   <h1 id="hero-title">Потеряли деньги<br/><span>из-за обмана?</span></h1>
   <p className="hero-lead">Берег поможет составить план действий: связаться с банком, подготовить обращения и найти поддержку.</p>
   <div className="hero-actions"><button className="button primary large" onClick={resumeOrStart}>{saved?(hasPlan?'Продолжить план действий':'Продолжить опрос'):'Составить план действий'}<span className="button-arrow"><ArrowRight size={19}/></span></button><button className="button secondary" onClick={()=>go('helper')}><Users size={18}/>Помогаю близкому</button></div>
-  <span className="hero-caption"><LockKeyhole size={13}/>Без регистрации. Ответы сохраняются в этом браузере.</span>
+  <span className="hero-caption"><LockKeyhole size={14} aria-hidden="true"/>Без регистрации. Ответы сохраняются в этом браузере.</span>
   <div className="hero-plan-preview"><div><span className="eyebrow">Пример плана</span><h2>Понятно, что делать дальше</h2><p>Задачи зависят от ваших ответов. Документы и заметки сохраняются вместе с планом.</p></div><ol><li><Phone size={19}/><span>Сообщить банку об обмане</span><span className="preview-state">Номер и текст разговора</span></li><li><FileText size={19}/><span>Подготовить заявление</span><span className="preview-state">Черновик по вашим ответам</span></li><li><Wallet size={19}/><span>Спланировать расходы</span><span className="preview-state">На ближайшие две недели</span></li></ol></div>
  </section>
 
