@@ -11,6 +11,7 @@ import {collapseShorePractice,type ShorePracticeStatus} from '@/lib/shore-practi
 import {ArticleTile,ArticleCarousel,ArticlePage} from '@/components/bereg-content';
 import {SiteHeader} from '@/components/site-header';
 import {AboutPage} from '@/components/about-page';
+import {HowToPage} from '@/components/how-to-page';
 import {SiteFooter} from '@/components/site-footer';
 import {CaseIntake} from '@/components/case-intake';
 import {DraftEditor} from '@/components/draft-editor';
@@ -24,8 +25,11 @@ import {Progress} from '@/components/ui/progress';
 import {Dialog,DialogContent,DialogTitle,DialogDescription} from '@/components/ui/dialog';
 import {Answers,emptyAnswers,choices,answerLabel,generatePlan,Step,articles,Article,sources,SavedCase,buildDraft,steps,isIntakeComplete,hasCaseAnswers,initiallyCompleted} from '@/lib/bereg';
 
-type View='home'|'intake'|'plan'|'materials'|'case'|'helper'|'article'|'about';
-const views:View[]=['home','intake','plan','materials','case','helper','article','about'];
+type View='home'|'intake'|'plan'|'materials'|'case'|'helper'|'article'|'about'|'how';
+type HowReturn='intake'|'plan'|'case';
+const views:View[]=['home','intake','plan','materials','case','helper','article','about','how'];
+const howReturnLabels={intake:'Вернуться к опросу',plan:'Вернуться к плану',case:'Вернуться к моему случаю'};
+function howReturnView(value:string|null):HowReturn|null{return value==='intake'||value==='plan'||value==='case'?value:null}
 
 function Wave({tone='green'}:{tone?:string}){return <svg className={`wave wave-${tone}`} viewBox="0 0 600 300" preserveAspectRatio="none" aria-hidden="true"><path className="wave-back" d="M0 70C170-30 230 240 600 20V300H0Z"/><path className="wave-gap" d="M0 170C150 30 280 300 600 80V300H0Z"/><path className="wave-front" d="M0 202C170 80 285 320 600 115V300H0Z"/></svg>}
 function SourceLink({source}:{source:{label:string;url:string}}){return <a className="source-link" href={source.url} target="_blank" rel="noopener noreferrer"><BookOpen size={17}/><span>{source.label}</span><ExternalLink size={14}/></a>}
@@ -33,6 +37,7 @@ function downloadFile(name:string,text:string){const url=URL.createObjectURL(new
 
 export default function BeregApp(){
  const [view,setView]=useState<View>('home');const [answers,setAnswers]=useState<Answers>({...emptyAnswers});const [question,setQuestion]=useState(0);const [furthestQuestion,setFurthestQuestion]=useState(0);const [role,setRole]=useState<'self'|'helper'>('self');
+ const [howReturn,setHowReturn]=useState<HowReturn|null>(null);const howScroll=useRef<{view:HowReturn;top:number;left:number}|null>(null);
  const [activeStep,setActiveStep]=useState<Step|null>(null);const [articleId,setArticleId]=useState('');const [support,setSupport]=useState(false);const [supportMode,setSupportMode]=useState<'options'|'practice'>('options');const [urgent,setUrgent]=useState(false);const [menu,setMenu]=useState(false);
  const [shorePractice,setShorePractice]=useState<ShorePracticeStatus|undefined>(undefined);
  const practiceFinished=useRef(false);const supportContent=useRef<HTMLDivElement>(null);const supportOrigin=useRef<{url:string;x:number;y:number}|null>(null);
@@ -48,7 +53,18 @@ export default function BeregApp(){
  const lastPageUrl=useRef(typeof window==='undefined'?'':window.location.href.split('#')[0]);
  const caseGoals=useRef(createCaseGoalTracker());const [goalRevision,setGoalRevision]=useState(0);
  function answerQuestion(next:Answers){if(hasCaseAnswers(next))caseGoals.current.firstAnswer();setSaveState('saving');setDocumentVersions(syncDraftVersions(documents,documentVersions,next));const removed=initiallyCompleted(answers).filter(id=>!initiallyCompleted(next).includes(id));setCompletedSteps(previous=>[...new Set([...previous.filter(id=>!removed.includes(id)),...initiallyCompleted(next)])]);setAnswers(next)}
- function go(next:View,article?:string){setView(next);setArticleId(article||'');setMenu(false);setActiveStep(null);setSupport(false);if(typeof window!=='undefined'){window.requestAnimationFrame?.(()=>{const heading=document.querySelector<HTMLElement>('#main h1');if(heading){heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true})}});const url=new URL(window.location.href);url.searchParams.delete('view');url.searchParams.delete('article');if(next!=='home')url.searchParams.set('view',next);if(article)url.searchParams.set('article',article);url.hash='';window.history.pushState({},'',url.pathname+url.search);window.scrollTo({top:0,behavior:'instant'})}}
+ function go(next:View,article?:string){
+  const from=next==='how'?(view==='how'?howReturn:howReturnView(view)):null;
+  if(next==='how'&&view!=='how'){setHowReturn(from);howScroll.current=from?{view:from,top:window.scrollY||0,left:window.scrollX||0}:null}
+  setView(next);setArticleId(article||'');setMenu(false);setActiveStep(null);setSupport(false);
+  if(typeof window!=='undefined'){
+   window.requestAnimationFrame?.(()=>{const heading=document.querySelector<HTMLElement>('#main h1');if(heading){heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true})}});
+   const url=new URL(window.location.href);url.searchParams.delete('view');url.searchParams.delete('article');url.searchParams.delete('returnTo');
+   if(next!=='home')url.searchParams.set('view',next);if(article)url.searchParams.set('article',article);if(next==='how'&&from)url.searchParams.set('returnTo',from);
+   url.hash='';window.history.pushState({},'',url.pathname+url.search);window.scrollTo({top:0,behavior:'instant'});
+  }
+ }
+ function returnFromHow(){const target=howReturn||'case';const position=howScroll.current;go(target);if(position?.view===target)window.requestAnimationFrame?.(()=>window.scrollTo({top:position.top,left:position.left,behavior:'instant'}))}
  function openArticle(article:Article){go('article',article.id)}
  function readAboutDisclosure(){openArticle(articles.find(a=>a.id==='feelings')!)}
 
@@ -112,10 +128,10 @@ export default function BeregApp(){
   return()=>window.clearTimeout(timer);
  },[caseLoading,storageReady,storageMode,answers,documents,documentVersions,focusStep,completedSteps,question,furthestQuestion,intakeCompleted,role,bankCall,goalRevision,shorePractice]);
 
- useEffect(()=>{const read=()=>{const params=new URLSearchParams(window.location.search);const v=params.get('view') as View;setView(views.includes(v)?v:'home');setArticleId(params.get('article')||'')};read();window.addEventListener('popstate',read);void loadCase();return()=>window.removeEventListener('popstate',read)},[]);
+ useEffect(()=>{const read=()=>{const params=new URLSearchParams(window.location.search);const v=params.get('view') as View;setView(views.includes(v)?v:'home');setArticleId(params.get('article')||'');if(v==='how')setHowReturn(howReturnView(params.get('returnTo')))};read();window.addEventListener('popstate',read);void loadCase();return()=>window.removeEventListener('popstate',read)},[]);
  useEffect(()=>{const context=(document as unknown as {modelContext?:{registerTool:(tool:unknown,options:unknown)=>unknown}}).modelContext;if(!context?.registerTool)return;const lifecycle=new AbortController();for(const tool of [{name:'get_current_bereg_plan',title:'Посмотреть текущий план',description:'Read the current unsaved answers and plan visible on the page. Does not access saved cases.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:true},execute:(input:unknown)=>{if(!input||typeof input!=='object'||Object.keys(input).length)throw new Error('Expected empty object');return {available:hasPlan,steps:hasPlan?plan.map(s=>({id:s.id,title:s.title,category:s.category,completed:progress.completed.includes(s.id)})):[]}}},{name:'start_bereg_questionnaire',title:'Начать описание случая',description:'Navigate to the case questionnaire. Does not submit or save any data.',inputSchema:{type:'object',properties:{role:{type:'string',enum:['self','helper']}},required:['role'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute:(input:unknown)=>{const data=input as {role?:string};if(!data||!['self','helper'].includes(data.role||'')||Object.keys(data).some(k=>k!=='role'))throw new Error('Invalid role');start(data.role==='helper');return {view:'intake',question:1}}}]){try{void Promise.resolve(context.registerTool(tool,{signal:lifecycle.signal})).catch(()=>{})}catch{}}return()=>lifecycle.abort()},[hasPlan,plan,completedSteps]);
  useEffect(()=>{
-  document.title=view==='article'&&currentArticle?`${currentArticle.title} · Берег`:view==='about'?'О нас · Берег':'Берег — план действий после обмана';
+  document.title=view==='article'&&currentArticle?`${currentArticle.title} · Берег`:view==='about'?'О нас · Берег':view==='how'?'Как пользоваться сервисом · Берег':'Берег — план действий после обмана';
   const url=window.location.href.split('#')[0];
   if(url===lastPageUrl.current)return; // The counter's init already records the initial page.
   const referer=lastPageUrl.current;lastPageUrl.current=url;
@@ -138,6 +154,7 @@ export default function BeregApp(){
  <main id="main" className={'main-content view-'+view+(['intake','plan','case'].includes(view)?' ym-hide-content':'')}>
  {caseError&&<div className="storage-error" role="alert"><p>{caseError}</p><div><button className="button secondary" onClick={exportBackup}>Скачать копию данных</button><button className="text-button" onClick={()=>loadCase()}>Проверить сохранение снова</button>{storageMode==='local'&&<button className="text-button" onClick={()=>{setStorageMode('memory');setStorageReady(true);setCaseError('');flash('Работаем без сохранения. Скачайте результат перед закрытием страницы.')}}>Продолжить без сохранения</button>}</div></div>}
  {view==='about'&&<AboutPage hasPlan={hasPlan} onStart={resumeOrStart} onMaterials={()=>go('materials')}/>}
+ {view==='how'&&<HowToPage primaryLabel={howReturn?howReturnLabels[howReturn]:saved||hasCaseAnswers(answers)?'Открыть мой случай':'Составить план действий'} onPrimary={()=>howReturn?returnFromHow():saved||hasCaseAnswers(answers)?go('case'):resumeOrStart()} loading={caseLoading} backLabel={howReturn?howReturnLabels[howReturn]:undefined} onBack={returnFromHow} onSupport={openSupport} onPractice={openPractice} onMaterials={()=>go('materials')} onHelper={()=>go('helper')} onCase={()=>go('case')}/>}
  {view==='home'&&<>
  <section className="hero-editorial" aria-labelledby="hero-title">
   <span className="hero-kicker"><img src="./favicon.svg" alt=""/>Поддержка без осуждения</span>
@@ -150,9 +167,9 @@ export default function BeregApp(){
 
  <ArticleCarousel onOpen={openArticle} onAll={()=>go('materials')}/>
  </>}
- {view==='intake'&&<><button className="back-link" onClick={()=>question>0?setQuestion(question-1):go('home')}><ChevronLeft size={18}/>{question>0?'Назад':'На главную'}</button><CaseIntake answers={answers} onChange={answerQuestion} stage={question} furthest={furthestQuestion} role={role} saveLabel={saveLabel} onUrgent={()=>setUrgent(true)} onStage={i=>{setQuestion(i);setFurthestQuestion(previous=>Math.max(previous,i));window.scrollTo({top:0,behavior:'instant'})}} onPlan={()=>{setIntakeCompleted(true);go('plan')}}/></>}
+ {view==='intake'&&<><div className="how-context-links"><button className="back-link" onClick={()=>question>0?setQuestion(question-1):go('home')}><ChevronLeft size={18}/>{question>0?'Назад':'На главную'}</button><button className="text-button" onClick={()=>go('how')}><BookOpen size={17} aria-hidden="true"/>Как пользоваться</button></div><CaseIntake answers={answers} onChange={answerQuestion} stage={question} furthest={furthestQuestion} role={role} saveLabel={saveLabel} onUrgent={()=>setUrgent(true)} onStage={i=>{setQuestion(i);setFurthestQuestion(previous=>Math.max(previous,i));window.scrollTo({top:0,behavior:'instant'})}} onPlan={()=>{setIntakeCompleted(true);go('plan')}}/></>}
  {view==='plan'&&(hasPlan?<>
- <div className="page-head"><div><h1>Ваш план действий</h1><p>Отмечайте выполненные задачи. Инструкции и документы останутся доступны.</p></div><span className={'autosave-status '+(saveState==='error'?'error':'')} role="status">{saveLabel}</span></div>
+ <div className="page-head"><div><h1>Ваш план действий</h1><p>Отмечайте выполненные задачи. Инструкции и документы останутся доступны.</p></div><div className="plan-head-tools"><span className={'autosave-status '+(saveState==='error'?'error':'')} role="status">{saveLabel}</span><button className="text-button" onClick={()=>go('how')}><BookOpen size={17} aria-hidden="true"/>Как пользоваться</button></div></div>
  <div className="plan-layout"><div className="plan-main"><section className="plan-progress" aria-label="Выполнение плана"><div className="progress-topline"><h2>Выполнено {progress.count} из {progress.total}</h2></div><Progress value={progress.percent} aria-label="Выполненные задачи"/></section>
  {progress.nextStep?<section className={'next-step '+progress.nextStep.tone}><div className="next-step-heading"><span className="pill">Дальше</span><h2>{progress.nextStep.title}</h2></div><StepArtwork stepId={progress.nextStep.id}/><div className="next-step-actions"><button className="button primary" onClick={()=>openStep(progress.nextStep!)}>Открыть инструкцию<ArrowRight size={18}/></button><label className="quick-complete"><Checkbox checked={false} onCheckedChange={checked=>checked&&toggleStep(progress.nextStep!.id,true)}/>Отметить выполненным</label></div></section>:<section className="plan-complete"><CheckCircle2 size={32}/><div><h2>Все задачи отмечены</h2><p>Инструкции, документы и заметки доступны ниже и в «Моём случае».</p></div></section>}
  {prominentPractice&&<section className="plan-emotional-support" aria-label="Эмоциональная поддержка"><ShorePracticeOffer prominent status={shorePractice} onOpen={openPractice} onCollapse={()=>updatePracticeStatus(collapseShorePractice(shorePractice))}/></section>}
@@ -166,7 +183,7 @@ export default function BeregApp(){
  {view==='helper'&&<><div className="editorial-intro"><span className="eyebrow">Для близких</span><h1>Быть рядом —<br/>уже <span>помощь.</span></h1><p>Не нужно знать все ответы. Можно поддержать человека и вместе разобраться с ближайшим действием.</p><button className="button primary" onClick={()=>start(true)}><Users size={19}/>Пройти опрос вместе</button></div><div className="helper-grid">{[{title:'Сначала выслушайте',text:'Спросите, что нужно сейчас. Не торопите и не требуйте рассказать всё сразу.'},{title:'Предложите конкретную помощь',text:'Побыть рядом, записать факты или вместе открыть официальный канал банка.'},{title:'Сохраните право выбора',text:'Действуйте с согласия человека. Решения о его деньгах и аккаунтах остаются за ним.'}].map((x,i)=><div className="helper-card" key={x.title}><span className="step-number green">0{i+1}</span><h2>{x.title}</h2><p>{x.text}</p></div>)}</div><div className="message-card"><div><span className="eyebrow">Можно сказать так</span><h2>«Я рядом. Я не буду тебя осуждать.<br/>Давай разберёмся с одним шагом».</h2></div><button className="button secondary" onClick={()=>openArticle(articles.find(a=>a.id==='helper')!)}>Как начать разговор<ArrowRight size={17}/></button></div><button className="urgent-strip" onClick={()=>setUrgent(true)}><ShieldCheck/><span><strong>Если доступ к деньгам мог остаться у посторонних</strong><span>Помогите близкому открыть первые действия.</span></span><span className="urgent-link">Открыть</span></button></>}
  </main>
  <SiteFooter onNavigate={go}/>
- <button className={'floating-support '+(['intake','case'].includes(view)?'hide-during-input':'')} onClick={openSupport} aria-label="Открыть эмоциональную поддержку"><HeartHandshake size={23}/></button>
+ <button className={'floating-support '+(['intake','case','how'].includes(view)?'hide-during-input':'')} onClick={openSupport} aria-label="Открыть эмоциональную поддержку"><HeartHandshake size={23}/></button>
  {notice&&<div className="toast" role="status">{notice}</div>}
  <Dialog open={support} onOpenChange={open=>{if(!open)closeSupport()}}><DialogContent ref={supportContent} className={'support-dialog ym-hide-content'+(supportMode==='practice'?' shore-dialog':'')} onOpenAutoFocus={event=>{if(supportMode==='practice'){const prompt=supportContent.current?.querySelector<HTMLElement>('[data-shore-prompt]');if(prompt){event.preventDefault();prompt.focus({preventScroll:true})}}}} onCloseAutoFocus={restoreSupportPosition}>
  {supportMode==='practice'?<ShorePracticeSession onClose={closeSupport} onComplete={finishPractice} onSupport={practiceToSupport} returnLabel={view==='plan'?'Вернуться к плану':activeStep?'Вернуться к шагу':'Вернуться'}/>:<><span className="dialog-symbol"><HeartHandshake size={34}/></span><DialogTitle className="dialog-title" tabIndex={-1}>Поддержка</DialogTitle><DialogDescription>Здесь доступны короткая пауза, статьи и контакты внешней помощи. Живого специалиста внутри сервиса нет.</DialogDescription><div className="shore-support-entry"><h3>Практика «Найти берег»</h3><p>Три простых действия: посмотреть вокруг, заметить звук и почувствовать опору. Можно закончить в любой момент.</p><button className="button primary" onClick={openPractice}>Открыть практику «Найти берег»</button></div><div className="support-links"><button className="text-button disclosure-link" onClick={readAboutDisclosure}><HeartHandshake size={17}/>Как рассказать близким о случившемся<ArrowRight size={15}/></button><a href="https://psi.mchs.gov.ru/" target="_blank" rel="noopener noreferrer"><ExternalLink size={16}/>Психологическая помощь МЧС</a><a href="tel:+74959895050"><Phone size={16}/>+7 (495) 989-50-50</a></div><p className="emergency-note">При непосредственной угрозе жизни или безопасности — <a href="tel:112">112</a>.</p></>}

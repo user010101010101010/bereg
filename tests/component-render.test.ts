@@ -19,6 +19,16 @@ function load(file:string,react:unknown=React){
  vm.runInNewContext(js,{exports,require});return exports;
 }
 const a={...bereg.emptyAnswers,risk:'yes',kind:'transfer',money:'own',impact:'savings'};
+test('how-to renders every anchor target, seven optional FAQs and exact real control names without fake screenshots',()=>{
+ const {HowToPage,howSections,howQuestions}=load('how-to-page.tsx');
+ const html=renderToStaticMarkup(React.createElement(HowToPage,{primaryLabel:'Вернуться к плану',backLabel:'Вернуться к плану',loading:false,onPrimary(){},onBack(){},onSupport(){},onPractice(){},onMaterials(){},onHelper(){},onCase(){}}));
+ assert.match(html,/Как пользоваться «Берегом»/);assert.equal(howQuestions.length,7);
+ for(const section of howSections){assert.ok(html.includes('href="#'+section.id+'"'));assert.ok(html.includes('id="'+section.id+'"'));}
+ for(const [question] of howQuestions)assert.ok(html.includes('<summary>'+question+'</summary>'));assert.doesNotMatch(html,/<img|<figure|<input|placeholder=|скриншот появится|онбординг|не переживайте|интуитивно понятный/);
+ for(const label of ['Получить план действий','Открыть инструкцию','Этот шаг выполнен','Скачать TXT','Скопировать текст','Хранение и удаление данных','Найти берег'])assert.ok(html.includes(label));
+ assert.match(html,/самостоятельно отправить в банк/);assert.match(html,/Автоматической синхронизации нет/);assert.match(html,/загрузить JSON обратно в сервис сейчас нельзя/);
+ const disabled=renderToStaticMarkup(React.createElement(HowToPage,{primaryLabel:'Открыть мой случай',loading:true,onPrimary(){},onBack(){},onSupport(){},onPractice(){},onMaterials(){},onHelper(){},onCase(){}}));assert.equal((disabled.match(/disabled=""/g)||[]).length,2);
+});
 test('pending and completed rows separate the checkbox hit area from the instruction button and do not render empty lists',()=>{
  const {StepChecklist}=load('bereg-features.tsx');const steps=bereg.generatePlan(a);
  const render=(completed:string[],omitNext=true)=>renderToStaticMarkup(React.createElement(StepChecklist,{plan:steps,completed,omitNext,onToggle(){},onOpen(){}}));

@@ -433,3 +433,46 @@ summary:focus-visible{outline:3px solid var(--green);outline-offset:4px;border-r
  .footer-case>a{align-items:flex-start;line-height:1.6}.footer-case>a svg{flex-shrink:0;margin-top:3px}
  .editorial-footer .social-links a{padding:10px;gap:6px}.editorial-footer .social-link-icon svg{width:18px;height:18px}
 }
+
+/* Service guide: compact entry, readable steps, optional details. */
+.how-page{max-width:1180px;margin:15px auto 0;min-width:0}
+.how-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:30px;margin-bottom:34px}
+.how-heading>div{min-width:0;max-width:760px}.how-heading h1{font-size:clamp(30px,3.3vw,48px);line-height:1.2;margin:13px 0 18px;max-width:22ch}
+.how-heading p{font-size:17px;line-height:1.8;max-width:65ch;color:#415847}.how-heading>.button{flex-shrink:0;margin-top:38px;max-width:270px;font-size:16px}
+.how-back{min-height:44px;margin-bottom:14px;font-size:15px}
+.how-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;align-items:start}
+.how-toc{position:sticky;top:115px;min-width:0;padding:6px 0}.how-toc h2{font-size:16px;line-height:1.6;letter-spacing:0;margin-bottom:12px}
+.how-toc-mobile{display:none}.how-toc-mobile>summary{cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px;font-size:16px;font-weight:500;list-style:none}.how-toc-mobile>summary::-webkit-details-marker{display:none}.how-toc-mobile[open]>summary{margin-bottom:10px}.how-toc-mobile[open]>summary svg{transform:rotate(180deg)}
+.how-toc ol{list-style:none;margin:0;padding:0;display:grid;gap:3px}.how-toc a{display:flex;align-items:baseline;gap:7px;text-decoration:none;min-height:44px;padding:9px 0;font-size:14px;line-height:1.7;color:#36543c}
+.how-toc a:hover{text-decoration:underline;text-underline-offset:4px}.how-toc a>span{color:var(--green);flex-shrink:0}
+.how-content{min-width:0;display:grid;gap:24px}.how-section{padding:32px;background:#fff;border-radius:22px;min-width:0}
+.how-section,.how-faq{scroll-margin-top:120px}.how-section:focus-visible,.how-faq:focus-visible{outline:3px solid var(--green);outline-offset:5px}
+.how-number,.how-section-icon{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:42px;background:#edf3e7;color:var(--green);border-radius:13px;margin-bottom:18px;font-size:15px;font-weight:500}
+.how-section h2,.how-faq>h2{font-size:27px;line-height:1.35;letter-spacing:-.035em;margin-bottom:18px}
+.how-section p,.how-actions li,.how-support-options li,.how-faq p{font-size:16px;line-height:1.85;max-width:68ch}
+.how-section>p+p{margin-top:15px}.how-actions{padding-left:22px;margin:19px 0 0;display:grid;gap:14px}.how-actions li{padding-left:5px}.how-actions li::marker{color:var(--green);font-weight:500}
+.how-section strong{font-weight:600}.how-location{color:#445d48;margin-top:20px}
+.how-section .how-note{display:flex;align-items:flex-start;gap:12px;background:#edf3e7;padding:18px;border-radius:14px;margin-top:22px;max-width:none;color:#2e4e37}
+.how-note>svg{flex-shrink:0;margin-top:5px}.how-more{margin-top:22px;background:#f4f6ee;border-radius:14px;padding:0 18px}
+.how-more>summary,.how-faq summary{cursor:pointer;min-height:48px;font-size:16px;line-height:1.7;padding:15px 0;font-weight:500}
+.how-more p{padding-bottom:17px}.how-more p+p{margin-top:0}.how-inline-action{margin-top:17px;min-height:44px;font-size:16px;line-height:1.7;text-align:left}
+.how-support-section{background:#e7efdf}.how-support-options{padding-left:20px;margin:20px 0 0;display:grid;gap:16px}.how-support-options li{padding-left:4px}
+.how-section-actions{display:flex;align-items:center;flex-wrap:wrap;gap:15px 24px;margin-top:24px}.how-section-actions .button,.how-section-actions .text-button{font-size:16px;min-height:44px}
+.how-faq{padding:24px 0 0}.how-faq>details{background:#fff;padding:0 24px;border-radius:15px;margin-bottom:10px}.how-faq p{padding:0 0 23px;color:#354d3c}
+.how-finish{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:23px 0 4px}.how-finish p{font-size:16px;line-height:1.8;max-width:35ch;color:#445d48}.how-finish .button{font-size:16px;flex-shrink:0;max-width:270px}
+.how-context-links{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;margin-bottom:24px}.how-context-links>.back-link{margin:0;min-height:44px}.how-context-links>.text-button{font-size:15px;min-height:44px}
+.plan-head-tools{display:flex;flex-direction:column;align-items:flex-start;gap:10px;flex-shrink:0}.plan-head-tools .text-button{font-size:15px;min-height:44px}
+.view-how~.floating-support{display:none}
+@media(max-width:1000px){.how-layout{grid-template-columns:190px minmax(0,1fr);gap:25px}.how-heading{flex-wrap:wrap;gap:18px}.how-heading>.button{margin-top:0}.how-section{padding:27px}.how-finish{flex-wrap:wrap}}
+@media(max-width:768px){
+ .how-page{margin-top:10px}.how-layout{grid-template-columns:minmax(0,1fr);gap:24px}
+ .how-heading{margin-bottom:25px;gap:18px}.how-heading h1{font-size:32px;margin:12px 0 16px}.how-heading p{font-size:16px}
+ .how-toc{position:static;padding:21px;background:#edf3e7;border-radius:17px}.how-toc a{font-size:16px;min-height:44px;padding:8px 0}
+ .how-toc-desktop{display:none}.how-toc-mobile{display:block}
+ .how-content{gap:20px}.how-section{padding:25px 23px;border-radius:18px}.how-section h2,.how-faq>h2{font-size:24px}
+ .how-section .how-note{padding:17px 15px;gap:10px}.how-number,.how-section-icon{margin-bottom:16px}
+ .how-more{padding:0 15px}.how-section-actions{flex-direction:column;align-items:flex-start;gap:10px}
+ .how-faq>details{padding:0 20px}.how-finish{flex-direction:column;align-items:flex-start;padding-top:15px;gap:17px}
+ .how-finish p{max-width:none}.plan-head-tools{gap:5px;max-width:100%}.plan-head-tools .autosave-status{font-size:14px}
+}
+@media(max-width:390px){.how-heading h1{font-size:29px}.how-section{padding:23px 19px}.how-toc{padding:19px}.how-actions{padding-left:20px}.how-faq>details{padding:0 18px}}

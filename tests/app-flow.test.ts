@@ -19,13 +19,15 @@ function app(records=new Map<string,string>(),initialUrl='https://beregryadom.ru
  let cursor=0,dirty=false;const hooks:any[]=[];let pending:(()=>void)[]=[];let tree:any;let timerId=0;
  const timers=new Map<number,{callback:()=>void;delay:number}>();const calls:unknown[][]=[];let clipboardBlocked=false,storageFailed=false;const copied:string[]=[];
  const timer=(callback:()=>void,delay:number)=>{timers.set(++timerId,{callback,delay});return timerId};
- const location={href:initialUrl};
+ const location={href:initialUrl,get search(){return new URL(this.href).search}};
  const listeners=new Map<string,()=>void>();
  const dataLayer:{event:string}[]=[];const pixelViews:Record<string,unknown>[]=[];
  const scrollPosition={left:0,top:0};
  const window={location,dataLayer,_tmr:pixelViews,localStorage:{getItem:(k:string)=>records.get(k)??null,setItem:(k:string,v:string)=>{if(storageFailed)throw new Error('quota');records.set(k,v)},removeItem:(k:string)=>records.delete(k)},history:{pushState:(_a:unknown,_b:string,url:string)=>{location.href=new URL(url,location.href).href}},get scrollX(){return scrollPosition.left},get scrollY(){return scrollPosition.top},scrollTo(value:{top?:number;left?:number}){if(value.top!==undefined)scrollPosition.top=value.top;if(value.left!==undefined)scrollPosition.left=value.left},innerHeight:800,setTimeout:timer,clearTimeout:(id:number)=>timers.delete(id),addEventListener:(name:string,callback:()=>void)=>listeners.set(name,callback),removeEventListener:(name:string)=>listeners.delete(name),ym:(...args:unknown[])=>calls.push(args)};
  Object.assign(globalThis,{window});
- const document={title:'',visibilityState:'visible',documentElement:{style:{setProperty(){}}},addEventListener(){},removeEventListener(){},createElement:()=>({click(){}})};
+ const document={title:'',visibilityState:'visible',documentElement:{style:{setProperty(){}}},querySelector:()=>null,addEventListener(){},removeEventListener(){},createElement:()=>({click(){}})};
+ Object.defineProperty(window,'scrollY',{get:()=>scrollPosition.top});
+ Object.assign(window,{requestAnimationFrame:(callback:()=>void)=>timer(callback,0),cancelAnimationFrame:(id:number)=>timers.delete(id)});
  const stub=(name:string)=>Object.assign(function Component(){},{displayName:name});
  const React={Fragment:'fragment',createElement:(type:any,props:any,...children:any[])=>({type,props:{...props,children}}),
   useState:(initial:any)=>{const i=cursor++;if(!(i in hooks))hooks[i]=typeof initial==='function'?initial():initial;return [hooks[i],(value:any)=>{const next=typeof value==='function'?value(hooks[i]):value;if(!Object.is(next,hooks[i])){hooks[i]=next;dirty=true}}]},
@@ -50,6 +52,26 @@ function app(records=new Map<string,string>(),initialUrl='https://beregryadom.ru
 }
 const complete={...bereg.emptyAnswers,risk:'yes',kind:'transfer',money:'own',impact:'savings',notes:'Вымышленная история для регрессии'};
 function finish(h:ReturnType<typeof app>){h.click('Составить план действий');h.find('CaseIntake').onChange(complete);h.render();h.find('CaseIntake').onPlan();h.render();h.flush()}
+test('how-to page preserves a partial questionnaire, its stage and scroll; reload offers a safe return',()=>{
+ const h=app();h.click('Составить план действий');h.find('CaseIntake').onChange({...complete,kind:'',impact:''});h.render();h.find('CaseIntake').onStage(1);h.render();h.flush();h.setScroll(470);
+ const before=storage.loadLocalCase()!;h.click('Как пользоваться');h.flush();assert.equal(h.find('SiteHeader').view,'how');assert.equal(h.find('HowToPage').primaryLabel,'Вернуться к опросу');assert.ok(String(h.pixelViews.at(-1)?.url).endsWith('?view=how&returnTo=intake'));
+ h.find('HowToPage').onBack();h.render();h.flush();assert.equal(h.find('CaseIntake').stage,1);assert.deepEqual(h.find('CaseIntake').answers,before.answers);assert.equal(h.getScroll().top,470);
+ h.click('Как пользоваться');h.flush();const resumed=app(h.records,'https://beregryadom.ru/?view=how&returnTo=intake');resumed.flush();assert.equal(resumed.find('HowToPage').primaryLabel,'Вернуться к опросу');resumed.find('HowToPage').onPrimary();resumed.render();resumed.flush();assert.equal(resumed.find('CaseIntake').stage,1);assert.deepEqual(storage.loadLocalCase()!.answers,before.answers);
+});
+test('plan, checked steps, edited draft, bank notes and practice status survive how-to navigation and reload',()=>{
+ const h=app();finish(h);const first=h.find('StepChecklist').plan[0];h.find('StepChecklist').onToggle(first.id,true);h.render();h.find('ShorePracticeOffer').onCollapse();h.render();
+ h.navigate('case');h.find('CaseDashboard').onDraft('bank');h.render();h.find('DraftEditor').onChange('ТЕСТ: отредактированный текст, не отправлять');h.render();h.find('DraftEditor').onClose();h.render();
+ h.find('CaseDashboard').onOpenStep(bereg.generatePlan(complete).find(s=>s.id==='bank'));h.render();h.find('BankSupport').onChange({...bank.emptyBankCall,reference:'TEST-HOW-17',nextAction:'Только тестовая заметка'});h.render();
+ h.navigate('plan');h.flush();const before=storage.loadLocalCase()!;h.setScroll(640);h.click('Как пользоваться');h.flush();assert.equal(h.find('HowToPage').backLabel,'Вернуться к плану');h.find('HowToPage').onBack();h.render();h.flush();assert.equal(h.find('SiteHeader').view,'plan');assert.equal(h.getScroll().top,640);
+ for(const key of ['answers','documents','documentVersions','completedSteps','bankCall','shorePractice'] as const)assert.deepEqual(storage.loadLocalCase()![key],before[key]);
+ h.click('Как пользоваться');h.flush();const resumed=app(h.records,'https://beregryadom.ru/?view=how&returnTo=plan');resumed.flush();resumed.find('HowToPage').onPrimary();resumed.render();resumed.flush();assert.equal(resumed.find('SiteHeader').view,'plan');assert.deepEqual(resumed.dataLayer,[]);assert.equal(storage.loadLocalCase()!.documents.bank,before.documents.bank);
+});
+test('how-to is voluntary, available directly and in the footer, and its entry actions do not invent a case',()=>{
+ const h=app(undefined,'https://beregryadom.ru/?view=how&returnTo=https://invalid.example');h.flush();assert.equal(h.find('SiteHeader').view,'how');assert.equal(h.find('HowToPage').backLabel,undefined);assert.equal(h.find('HowToPage').primaryLabel,'Составить план действий');assert.equal(storage.loadLocalCase(),null);
+ h.find('HowToPage').onMaterials();h.render();assert.equal(h.find('SiteHeader').view,'materials');h.find('SiteFooter').onNavigate('how');h.render();h.find('HowToPage').onHelper();h.render();assert.equal(h.find('SiteHeader').view,'helper');assert.equal(storage.loadLocalCase(),null);
+ h.find('SiteFooter').onNavigate('how');h.render();h.find('HowToPage').onSupport();h.render();assert.match(h.visibleText(),/Живого специалиста внутри сервиса нет/);assert.equal(storage.loadLocalCase(),null);
+ h.find('HowToPage').onPractice();h.render();assert.equal(h.has('ShorePracticeSession'),true);h.find('ShorePracticeSession').onClose();h.render();h.find('HowToPage').onPrimary();h.render();assert.equal(h.find('SiteHeader').view,'intake');assert.equal(storage.loadLocalCase(),null);
+});
 test('shore offer appears only in the finished plan; security stays first; declining survives reload without blocking work',()=>{
  const h=app();assert.equal(h.has('ShorePracticeOffer'),false);assert.equal(h.has('ShorePracticeSession'),false);
  h.click('Составить план действий');h.find('CaseIntake').onChange({...complete,mood:'overwhelmed'});h.render();h.flush();assert.equal(h.has('ShorePracticeOffer'),false);
