@@ -92,9 +92,10 @@ test('shore practice uses readable text and places actions before the scene on p
 test('how-to keeps a readable single column on phones and tablet with keyboard-visible section targets',()=>{
  for(const width of [320,390,768,1440]){
   assert.equal(declarations('.how-section p',width)['font-size'],'16px');assert.equal(declarations('.how-actions li',width)['font-size'],'16px');assert.equal(declarations('.how-faq p',width)['font-size'],'16px');
-  assert.equal(declarations('.how-toc a',width)['min-height'],'44px');assert.equal(declarations('.how-faq summary',width)['min-height'],'48px');assert.equal(declarations('.how-section',width)['scroll-margin-top'],'120px');
+  assert.equal(declarations('.how-toc a',width)['min-height'],'44px');assert.equal(declarations('.how-faq summary',width)['min-height'],'48px');assert.equal(declarations('.how-section',width)['scroll-margin-top'],'0');
   if(width<=768){assert.equal(declarations('.how-layout',width)['grid-template-columns'],'minmax(0,1fr)');assert.equal(declarations('.how-toc',width).position,'static');assert.equal(declarations('.how-toc a',width)['font-size'],'16px')}
   else{assert.equal(declarations('.how-layout',width)['grid-template-columns'],'220px minmax(0,1fr)');assert.equal(declarations('.how-toc',width).position,'sticky')}
  }
  assert.equal(declarations('.how-section:focus-visible').outline,'3px solid var(--green)');assert.equal(declarations('.view-how~.floating-support').display,'none');
+ assert.equal(declarations('.how-actions')['list-style'],'decimal');assert.equal(declarations('.how-actions>li').display,'list-item');assert.equal(declarations('.how-heading>.button')['white-space'],'nowrap');assert.equal(declarations('.how-shot-open img').height,'auto');
 });
