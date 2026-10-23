@@ -28,7 +28,7 @@ export function CookieConsent({onReload}:{onReload:()=>void}){
  if(!open)return null;
  return <section ref={panel} className="cookie-banner ym-hide-content" aria-labelledby="cookie-title" tabIndex={-1}>
   <Cookie size={24} className="cookie-icon" aria-hidden="true"/>
-  <div className="cookie-copy"><h2 id="cookie-title">Cookie и статистика</h2><p>С вашего согласия Яндекс Метрика и Top.Mail.Ru/VK используют cookie и данные о посещении, чтобы мы могли улучшать сервис. Можно пользоваться «Берегом» без аналитики.</p>
+  <div className="cookie-copy"><h2 id="cookie-title">Cookie и статистика</h2><p>С вашего согласия используем cookie Яндекс Метрики и Top.Mail.Ru/VK для статистики посещений.</p>
    <details><summary>Какие данные используются</summary><div className="cookie-details"><p>Счётчики получают сведения об устройстве, браузере, просмотренных страницах и действиях на сайте. Ответы анкеты, записи и черновики мы не передаём в события аналитики. Вебвизор выключен.</p><p>Ответы и документы сохраняются отдельно в этом браузере. Выбор по аналитике на их сохранение не влияет. Его можно изменить через «Настройки cookie» внизу сайта. После очистки данных браузера выбор потребуется сделать снова.</p><a href="https://yandex.ru/support/metrica/ru/general/cookie-usage" target="_blank" rel="noopener noreferrer">О cookie Яндекс Метрики ↗</a><a href="https://top.mail.ru/help/ru/" target="_blank" rel="noopener noreferrer">О счётчике Top.Mail.Ru ↗</a></div></details>
    {error&&<p className="cookie-message" role="status">{error}</p>}
    {reload&&<p className="cookie-message" role="status">Выбор изменён. Обновите страницу, чтобы применить его к уже загруженным счётчикам.</p>}
