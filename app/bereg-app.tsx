@@ -13,6 +13,7 @@ import {SiteHeader} from '@/components/site-header';
 import {AboutPage} from '@/components/about-page';
 import {HowToPage} from '@/components/how-to-page';
 import {SiteFooter} from '@/components/site-footer';
+import {CookieConsent} from '@/components/cookie-consent';
 import {CaseIntake} from '@/components/case-intake';
 import {DraftEditor} from '@/components/draft-editor';
 import {syncDraftVersions,replaceDraft,acknowledgeDraft,type DocumentVersions} from '@/lib/draft-versions';
@@ -183,6 +184,7 @@ export default function BeregApp(){
  {view==='helper'&&<><div className="editorial-intro"><span className="eyebrow">Для близких</span><h1>Быть рядом —<br/>уже <span>помощь.</span></h1><p>Не нужно знать все ответы. Можно поддержать человека и вместе разобраться с ближайшим действием.</p><button className="button primary" onClick={()=>start(true)}><Users size={19}/>Пройти опрос вместе</button></div><div className="helper-grid">{[{title:'Сначала выслушайте',text:'Спросите, что нужно сейчас. Не торопите и не требуйте рассказать всё сразу.'},{title:'Предложите конкретную помощь',text:'Побыть рядом, записать факты или вместе открыть официальный канал банка.'},{title:'Сохраните право выбора',text:'Действуйте с согласия человека. Решения о его деньгах и аккаунтах остаются за ним.'}].map((x,i)=><div className="helper-card" key={x.title}><span className="step-number green">0{i+1}</span><h2>{x.title}</h2><p>{x.text}</p></div>)}</div><div className="message-card"><div><span className="eyebrow">Можно сказать так</span><h2>«Я рядом. Я не буду тебя осуждать.<br/>Давай разберёмся с одним шагом».</h2></div><button className="button secondary" onClick={()=>openArticle(articles.find(a=>a.id==='helper')!)}>Как начать разговор<ArrowRight size={17}/></button></div><button className="urgent-strip" onClick={()=>setUrgent(true)}><ShieldCheck/><span><strong>Если доступ к деньгам мог остаться у посторонних</strong><span>Помогите близкому открыть первые действия.</span></span><span className="urgent-link">Открыть</span></button></>}
  </main>
  <SiteFooter onNavigate={go}/>
+ <CookieConsent onReload={()=>{if(storageMode==='memory'&&hasCaseAnswers(answers))throw new Error('Case is not saved');flushCurrent();window.location.reload()}}/>
  <button className={'floating-support '+(['intake','case','how'].includes(view)?'hide-during-input':'')} onClick={openSupport} aria-label="Открыть эмоциональную поддержку"><HeartHandshake size={23}/></button>
  {notice&&<div className="toast" role="status">{notice}</div>}
  <Dialog open={support} onOpenChange={open=>{if(!open)closeSupport()}}><DialogContent ref={supportContent} className={'support-dialog ym-hide-content'+(supportMode==='practice'?' shore-dialog':'')} onOpenAutoFocus={event=>{if(supportMode==='practice'){const prompt=supportContent.current?.querySelector<HTMLElement>('[data-shore-prompt]');if(prompt){event.preventDefault();prompt.focus({preventScroll:true})}}}} onCloseAutoFocus={restoreSupportPosition}>

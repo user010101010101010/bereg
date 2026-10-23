@@ -5,7 +5,7 @@ import {emptyAnswers} from '../lib/bereg.ts';
 import {loadLocalCase,saveLocalCase,removeLocalCase} from '../lib/local-case.ts';
 
 const records=new Map<string,string>();
-const browser={location:{href:'https://beregryadom.ru/'},localStorage:{
+const browser={location:{href:'https://beregryadom.ru/'},beregAnalytics:{allowed:true},localStorage:{
  getItem:(key:string)=>records.get(key)??null,
  setItem:(key:string,value:string)=>records.set(key,value),
  removeItem:(key:string)=>records.delete(key),

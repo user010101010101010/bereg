@@ -15,10 +15,10 @@ test('all seven articles contain actionable opening, no quiz and no mandatory re
  const component=readFileSync(new URL('../components/bereg-content.tsx',import.meta.url),'utf8');assert.doesNotMatch(component,/guide\.quiz|quiz-feedback|из \{articles.length\}/);assert.ok(component.indexOf('className="article-quick"')<component.indexOf('className="guide-cover"'));
 });
 test('Metrika init actually disables replay and clickmap while preserving anonymous funnel events',()=>{
- const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');const source=html.match(/<script type="text\/javascript">([\s\S]*?)<\/script>/)![1];
- const calls:unknown[][]=[];const window={ym:(...args:unknown[])=>calls.push(args)};
- const document={scripts:[],referrer:'',createElement:()=>({}),getElementsByTagName:()=>[{parentNode:{insertBefore(){}}}]};
- vm.runInNewContext(source,{window,document,location:{href:'https://beregryadom.ru/'},ym:window.ym,Date});
+ const source=readFileSync(new URL('../public/analytics-consent.js',import.meta.url),'utf8');
+ const calls:unknown[][]=[];const window={ym:(...args:unknown[])=>calls.push(args),localStorage:{getItem:()=> 'accepted'},location:{href:'https://beregryadom.ru/'},addEventListener(){}};
+ const document={referrer:'',getElementById:()=>null,createElement:()=>({}),head:{appendChild(){}}};
+ vm.runInNewContext(source,{window,document,Date});
  const init=calls.find(call=>call[1]==='init')![2] as Record<string,unknown>;assert.equal(init.webvisor,false);assert.equal(init.clickmap,false);assert.equal(init.trackLinks,true);assert.ok(!('params' in init));
  const privateComponents=['case-intake.tsx','draft-editor.tsx','bereg-features.tsx'];for(const file of privateComponents){const source=readFileSync(new URL('../components/'+file,import.meta.url),'utf8');assert.match(source,/ym-hide-content/);assert.match(source,/ym-disable-keys/)}
 });

@@ -17,6 +17,6 @@ export function SiteFooter({onNavigate}:Props){
    <nav className="footer-pages" aria-label="Навигация в подвале"><h2>Разделы</h2><a href="?view=about" onClick={event=>navigate(event,'about')}>О нас</a><a href="?view=materials" onClick={event=>navigate(event,'materials')}>Статьи</a><a href="?view=how" onClick={event=>navigate(event,'how')}>Как пользоваться</a><a href="?view=helper" onClick={event=>navigate(event,'helper')}>Помогаю близкому</a></nav>
    <div className="footer-case"><h2>Мой случай</h2><p>Ответы, документы и отметки сохраняются в этом браузере.</p><a href="?view=case" onClick={event=>navigate(event,'case')}>Открыть мой случай<ArrowRight size={16} aria-hidden="true"/></a></div>
   </div>
-  <p className="footer-signoff">Берег · Помощь после финансового обмана</p>
+  <div className="footer-bottom"><p className="footer-signoff">Берег · Помощь после финансового обмана</p><button className="footer-cookie-settings" onClick={()=>window.dispatchEvent(new Event('bereg:cookie-settings'))}>Настройки cookie</button></div>
  </footer>;
 }
